@@ -1,0 +1,276 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Transmisión en Vivo - Centro Cristiano Refugio{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-content">
+        <h2 class="hero-label">Transmisión en Vivo</h2>
+        <h1 class="hero-title">Bienvenidos a su <span class="hero-highlight">Hogar Espiritual</span></h1>
+        <p class="hero-description">
+            Donde la presencia de Dios transforma vidas. Únete a nuestra comunidad global 
+            de fe y alabanza desde cualquier lugar del mundo.
+        </p>
+    </div>
+</div>
+
+<!-- Sección Principal: Video + Chat -->
+<section
+    class="live-section"
+    id="streamContainer"
+    data-on-air="{{ on_air|yesno:'true,false' }}"
+    data-hls-url="{{ hls_url }}"
+>
+
+    <!-- Player de Video -->
+    <div class="player-card">
+        <div class="player-glow"></div>
+        <div class="player-content">
+            <div class="status {% if on_air %}on-air{% endif %}">
+                <span class="dot {% if on_air %}on-air{% endif %}"></span>
+                <span class="status-text">
+                    {% if on_air %}
+                        En Vivo Ahora
+                    {% else %}
+                        Fuera de Línea
+                    {% endif %}
+                </span>
+            </div>
+
+            <video
+                id="videoPlayer"
+                class="video"
+                controls
+                playsinline
+                preload="none"
+                poster="{% static 'core/img/fondo.png' %}"
+            >
+                Tu navegador no soporta video HTML5.
+            </video>
+
+            <div class="play-overlay">
+                <button class="play-button">
+                    <span class="material-symbols-outlined">play_arrow</span>
+                </button>
+                <p class="play-text">Presiona para conectar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat en Vivo -->
+    <div class="chat-section">
+        <div class="chat-header">
+            <div class="chat-title">
+                <span class="material-symbols-outlined">forum</span>
+                <span>COMUNIDAD LIVE</span>
+            </div>
+            <span class="chat-count">Conectados</span>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message system">
+                🙏 Bienvenido a la transmisión en vivo de Centro Cristiano Refugio
+            </div>
+            <div class="message system">
+                💬 Comparte tus peticiones de oración y testimonios
+            </div>
+            <div class="message system">
+                ✨ Que la paz de Dios llene tu corazón
+            </div>
+            <div class="message system">
+                📖 Prepara tu Biblia y toma notas del mensaje
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" placeholder="Escribe un mensaje..." disabled>
+            <button class="btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+            </button>
+        </div>
+    </div>
+
+</section>
+
+<!-- Modal para pedir nombre -->
+<div id="modalNombre" class="modal oculto">
+    <div class="modal-contenido">
+        <h3>Ingresa tu nombre para participar en el chat</h3>
+        <input type="text" id="nombreUsuarioInput" placeholder="Tu nombre">
+        <button id="guardarNombreBtn">Guardar</button>
+    </div>
+</div>
+
+<!-- Cita Bíblica -->
+<div class="verse-section">
+    <div class="verse-card">
+        <span class="material-symbols-outlined verse-icon">format_quote</span>
+        <p class="verse-text">"Alabad a Jehová, porque él es bueno; Porque para siempre es su misericordia."</p>
+        <p class="verse-ref">— SALMOS 136:1</p>
+    </div>
+</div>
+
+<!-- Información de la Iglesia -->
+<section class="mission-section" id="nosotros">
+    <div class="mission-grid">
+        <div class="mission-card">
+            <img src="{% static 'core/img/fondo.png' %}" alt="Nuestra Misión" class="mission-image">
+            <div class="mission-overlay"></div>
+            <div class="mission-content">
+                <h3>Nuestra Misión</h3>
+                <p>
+                    Ser un <span class="highlight">refugio espiritual</span> donde cada persona encuentre 
+                    el amor de Cristo, crezca en fe y descubra su propósito divino en comunidad.
+                </p>
+            </div>
+        </div>
+
+        <div class="mission-card mission-card-offset">
+            <img src="{% static 'core/img/fondo.png' %}" alt="Adoración en Vivo" class="mission-image">
+            <div class="mission-overlay"></div>
+            <div class="mission-content">
+                <h3>Adoración Viva</h3>
+                <p>
+                    Experimenta la <span class="highlight">presencia de Dios</span> a través de nuestra 
+                    alabanza y adoración. Cada servicio es una oportunidad para encontrarte con Él.
+                </p>
+            </div>
+        </div>
+
+        <div class="mission-card">
+            <img src="{% static 'core/img/fondo.png' %}" alt="Palabra de Vida" class="mission-image">
+            <div class="mission-overlay"></div>
+            <div class="mission-content">
+                <h3>Palabra de Vida</h3>
+                <p>
+                    Mensajes transformadores basados en la <span class="highlight">Palabra de Dios</span>, 
+                    aplicables a tu vida diaria. Crece espiritualmente con cada enseñanza.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Horarios de Servicios -->
+<section class="schedule-section" id="horarios">
+    <div class="schedule-header">
+        <div>
+            <h2 class="schedule-label">Calendario Semanal</h2>
+            <h3 class="schedule-title">Horarios de Encuentro</h3>
+        </div>
+        <div class="schedule-divider">
+            <span class="divider-line"></span>
+            <p class="divider-text">Únete en cualquier momento</p>
+        </div>
+    </div>
+    
+    <div class="schedule-timeline">
+        <div class="schedule-grid">
+            <div class="schedule-item featured">
+                <div class="schedule-day">DOM</div>
+                <div class="schedule-card">
+                    <span class="material-symbols-outlined">church</span>
+                    <p class="schedule-type">Dominical</p>
+                    <p class="schedule-time">09:00 AM</p>
+                    <p class="schedule-desc">Principal</p>
+                </div>
+            </div>
+
+            <div class="schedule-item">
+                <div class="schedule-day">DOM</div>
+                <div class="schedule-card">
+                    <span class="material-symbols-outlined">wb_twilight</span>
+                    <p class="schedule-type">Vespertino</p>
+                    <p class="schedule-time">06:00 PM</p>
+                    <p class="schedule-desc">Adoración</p>
+                </div>
+            </div>
+
+            <div class="schedule-item">
+                <div class="schedule-day">MIÉ</div>
+                <div class="schedule-card">
+                    <span class="material-symbols-outlined">auto_stories</span>
+                    <p class="schedule-type">Estudio</p>
+                    <p class="schedule-time">07:00 PM</p>
+                    <p class="schedule-desc">Bíblico & Oración</p>
+                </div>
+            </div>
+
+            <div class="schedule-item">
+                <div class="schedule-day">VIE</div>
+                <div class="schedule-card">
+                    <span class="material-symbols-outlined">groups</span>
+                    <p class="schedule-type">Jóvenes</p>
+                    <p class="schedule-time">07:30 PM</p>
+                    <p class="schedule-desc">Noche de Alabanza</p>
+                </div>
+            </div>
+
+            <div class="schedule-item">
+                <div class="schedule-day">SÁB</div>
+                <div class="schedule-card">
+                    <span class="material-symbols-outlined">child_care</span>
+                    <p class="schedule-type">Escuela</p>
+                    <p class="schedule-time">04:00 PM</p>
+                    <p class="schedule-desc">Infantil</p>
+                </div>
+            </div>
+
+            <div class="schedule-item special">
+                <div class="schedule-day">VIE</div>
+                <div class="schedule-card">
+                    <span class="material-symbols-outlined">nightlight</span>
+                    <p class="schedule-type">Vigilia</p>
+                    <p class="schedule-time">11:00 PM</p>
+                    <p class="schedule-desc">Primer Viernes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Información Adicional -->
+<section class="info-section">
+    <div class="info-grid">
+        <div class="info-card">
+            <span class="material-symbols-outlined info-icon">card_membership</span>
+            <h4>Primera Visita</h4>
+            <p>
+                ¿Es tu primera vez? <span class="highlight">¡Te damos la bienvenida!</span> 
+                Ven como estás, aquí encontrarás un ambiente cálido y familiar.
+            </p>
+            <a href="#" class="info-link">
+                Saber más <span class="material-symbols-outlined">arrow_forward</span>
+            </a>
+        </div>
+
+        <div class="info-card">
+            <span class="material-symbols-outlined info-icon">music_note</span>
+            <h4>Ministerio de Alabanza</h4>
+            <p>
+                Únete a nuestro equipo de <span class="highlight">adoración</span>. 
+                Si tienes el don del canto o tocas algún instrumento, queremos que seas parte.
+            </p>
+            <a href="#" class="info-link">
+                Unirme <span class="material-symbols-outlined">arrow_forward</span>
+            </a>
+        </div>
+
+        <div class="info-card">
+            <span class="material-symbols-outlined info-icon">diversity_3</span>
+            <h4>Grupos de Vida</h4>
+            <p>
+                Conecta más profundamente a través de nuestros <span class="highlight">grupos celulares</span>. 
+                Estudia la Palabra y comparte experiencias en tu zona.
+            </p>
+            <a href="#" class="info-link">
+                Encontrar grupo <span class="material-symbols-outlined">arrow_forward</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
