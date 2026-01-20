@@ -1011,6 +1011,17 @@ body {
 }
 
 /* =====================================================
+   VIDEO ORIENTACIÓN DINÁMICA
+===================================================== */
+.video.video-vertical {
+    object-fit: contain; /* Muestra el video completo vertical con barras negras */
+}
+
+.video.video-horizontal {
+    object-fit: contain; /* Muestra el video completo horizontal sin recortar */
+}
+
+/* =====================================================
    RESPONSIVE
 ===================================================== */
 @media (max-width: 1024px) {

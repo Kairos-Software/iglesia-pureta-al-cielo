@@ -19,6 +19,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==============================
+    // DETECTAR ORIENTACIÓN DEL VIDEO
+    // ==============================
+    function detectarOrientacionVideo() {
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+
+        if (videoWidth && videoHeight) {
+            const esVertical = videoHeight > videoWidth;
+            
+            if (esVertical) {
+                video.classList.add('video-vertical');
+                video.classList.remove('video-horizontal');
+                console.log(`📱 Video VERTICAL detectado: ${videoWidth}x${videoHeight}`);
+            } else {
+                video.classList.add('video-horizontal');
+                video.classList.remove('video-vertical');
+                console.log(`🖥️ Video HORIZONTAL detectado: ${videoWidth}x${videoHeight}`);
+            }
+        }
+    }
+
+    // Escuchar cuando se carguen los metadatos del video
+    video.addEventListener('loadedmetadata', detectarOrientacionVideo);
+    
+    // También verificar en resize por si cambia durante la transmisión
+    video.addEventListener('resize', detectarOrientacionVideo);
+
+    // ==============================
     // HLS PLAYER
     // ==============================
     if (enVivo) {
