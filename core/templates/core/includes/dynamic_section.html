@@ -1,0 +1,77 @@
+{% load static %}
+{% comment %}
+  Include: dynamic_section.html
+  Uso: {% include "core/includes/dynamic_section.html" with sec=section %}
+  Maneja 3 tipos: cards | banner | split
+{% endcomment %}
+
+{% if sec.type == "cards" or not sec.type %}
+<section class="dynamic-section type-cards"
+         id="sec-{{ sec.id }}"
+         data-dynamic-id="{{ sec.id }}"
+         data-position="{{ sec.position }}">
+    <div class="ds-inner">
+        <div class="ds-header">
+            {% if sec.nav_label %}<span class="ds-eyebrow">{{ sec.nav_label }}</span>{% endif %}
+            <h2 class="ds-title">{{ sec.title }}</h2>
+            {% if sec.subtitle %}<p class="ds-subtitle">{{ sec.subtitle }}</p>{% endif %}
+        </div>
+        {% if sec.cards %}
+        <div class="ds-cards-grid">
+            {% for card in sec.cards %}
+            <div class="ds-card" data-card-id="{{ forloop.counter0 }}">
+                <span class="material-symbols-outlined ds-card-icon">{{ card.icon|default:"star" }}</span>
+                <h3 class="ds-card-title">{{ card.title }}</h3>
+                <p class="ds-card-text">{{ card.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% elif sec.type == "banner" %}
+<section class="dynamic-section type-banner"
+         id="sec-{{ sec.id }}"
+         data-dynamic-id="{{ sec.id }}"
+         data-position="{{ sec.position }}">
+    {% if sec.img_url %}
+    <div class="ds-banner-bg" style="background-image:url('{{ sec.img_url }}')"></div>
+    {% endif %}
+    <div class="ds-inner">
+        <div class="ds-banner-content">
+            <h2 class="ds-title">{{ sec.title }}</h2>
+            {% if sec.subtitle %}<p class="ds-subtitle">{{ sec.subtitle }}</p>{% endif %}
+            {% if sec.btn_text %}
+            <a href="{{ sec.btn_url|default:'#' }}" class="ds-banner-btn">{{ sec.btn_text }}</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% elif sec.type == "split" %}
+<section class="dynamic-section type-split {% if sec.img_side == 'left' %}img-left{% endif %}"
+         id="sec-{{ sec.id }}"
+         data-dynamic-id="{{ sec.id }}"
+         data-position="{{ sec.position }}">
+    <div class="ds-inner">
+        <div class="ds-split-content">
+            <h2 class="ds-title">{{ sec.title }}</h2>
+            {% if sec.subtitle %}<p class="ds-subtitle">{{ sec.subtitle }}</p>{% endif %}
+            {% if sec.btn_text %}
+            <a href="{{ sec.btn_url|default:'#' }}" class="ds-split-btn">{{ sec.btn_text }}</a>
+            {% endif %}
+        </div>
+        <div class="ds-split-image">
+            {% if sec.img_url %}
+            <img src="{{ sec.img_url }}" alt="{{ sec.title }}">
+            {% else %}
+            <div class="ds-img-placeholder">
+                <span class="material-symbols-outlined">image</span>
+                <span>Sin imagen</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}

@@ -1,82 +1,42 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" data-template="{{ site_config.template|default:'kaircam' }}">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Transmisión en Vivo{% endblock %}</title>
+    <title>{% block title %}{{ site_config.org_name|default:"Mi Organización" }}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Google Fonts -->
+    <!-- Favicon dinámico (logo de la organización) -->
+    <link rel="icon" type="image/png" href="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/logo.png' %}{% endif %}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
-    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Lato:wght@300;400;700&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
 
-    <!-- CSS -->
     <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/templates/' %}{{ site_config.template|default:'kaircam' }}.css">
 
-    <!-- HLS.js -->
+    <style id="siteThemeVars">:root {
+{% if site_config.color_bg_primary %}        --bg: {{ site_config.color_bg_primary }};
+        --bg2: {{ site_config.color_bg_primary }};
+        --bg3: {{ site_config.color_bg_primary }};
+        --card: {{ site_config.color_bg_primary }};
+{% endif %}{% if site_config.color_accent %}        --accent: {{ site_config.color_accent }};
+        --accent2: {{ site_config.color_accent }};
+        --accent-glow: {{ site_config.color_accent }}2e;
+{% endif %}{% if site_config.color_text %}        --text: {{ site_config.color_text }};
+        --text-muted: {{ site_config.color_text }};
+{% endif %}{% if site_config.font_display %}        --font-display: '{{ site_config.font_display }}', Georgia, serif;
+{% endif %}{% if site_config.font_body %}        --font-body: '{{ site_config.font_body }}', system-ui, sans-serif;
+{% endif %}    }</style>
+
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-
-    <!-- Fondo -->
-    <div class="background"></div>
-    <div class="overlay"></div>
-
-    <!-- Header -->
-    <header class="site-header">
-        <div class="brand">
-            <div class="brand-logo-container">
-                <img src="{% static 'core/img/logo.png' %}" alt="Logo CCR" class="brand-logo">
-            </div>
-            <div class="brand-text">
-                <h1 class="site-title">IGLESIA</h1>
-                <span class="site-subtitle">Puerta al Cielo</span>
-            </div>
-        </div>
-        <nav class="site-nav">
-            <ul>
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#horarios">Horarios</a></li>
-                <li><a href="#nosotros">Nosotros</a></li>
-                <li>
-                    <a href="https://kaircampanel.grupokairosarg.com" target="_blank" rel="noopener noreferrer" class="panel-button">
-                        Ir al Panel
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </header>
-
-    <!-- Contenido -->
-    <main class="site-content" id="inicio">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <span class="footer-title">IGLESIA PUERTA AL CIELO</span>
-                <p class="footer-verse">"Porque donde están dos o tres congregados en mi nombre, allí estoy yo en medio de ellos" - Mateo 18:20</p>
-            </div>
-            <div class="footer-social">
-                <a href="#"><span class="material-symbols-outlined">public</span></a>
-                <a href="#"><span class="material-symbols-outlined">mail</span></a>
-                <a href="#"><span class="material-symbols-outlined">location_on</span></a>
-            </div>
-            <div class="footer-copyright">
-                <p>© {{ now|date:"Y" }} IGLESIA PUERTA AL CIELO</p>
-                <p>Todos los derechos reservados</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- JS -->
-    <script src="{% static 'core/js/base.js' %}"></script>
-
+{% block body %}{% endblock %}
+<script src="{% static 'core/js/base.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

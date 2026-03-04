@@ -1,0 +1,29 @@
+{% load static %}
+<div class="player-card" id="playerCard">
+    <!-- Barra de estado -->
+    <div class="player-status-bar {% if on_air %}live{% endif %}">
+        <span class="status-dot {% if on_air %}live{% endif %}"></span>
+        <span>{% if on_air %}EN VIVO{% else %}FUERA DE LÍNEA{% endif %}</span>
+    </div>
+
+    <!-- Video -->
+    <video id="videoPlayer" class="video-player" controls playsinline preload="none"
+           poster="{% static 'core/img/fondo.png' %}"></video>
+
+    <!-- Overlay de reproducción (solo si no está en vivo o si el video está pausado) -->
+    <div class="play-overlay" id="playOverlay">
+        <button class="play-btn" id="playBtn">
+            <span class="material-symbols-outlined">play_arrow</span>
+        </button>
+        <p>Presioná para conectar</p>
+    </div>
+
+    <!-- Overlay de offline (se muestra cuando no hay señal y el overlay de play está oculto) -->
+    {% if not on_air %}
+    <div class="offline-overlay">
+        <span class="material-symbols-outlined">wifi_off</span>
+        <p>Sin señal</p>
+        <small>La transmisión no está disponible</small>
+    </div>
+    {% endif %}
+</div>

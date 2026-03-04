@@ -1,0 +1,269 @@
+{% load static %}
+<!-- ═══════════════════════════════════════════
+     LAYOUT: LATERAL
+     Nav fija izquierda, contenido ocupa el resto
+     Logo arriba en el sidebar, redes abajo
+═══════════════════════════════════════════ -->
+
+<div class="lat-wrap">
+
+<!-- ── SIDEBAR ── -->
+<aside class="lat-sidebar" id="latSidebar">
+    <div class="lat-sidebar-inner">
+
+        <!-- Brand -->
+        <a href="#inicio" class="lat-brand">
+            <div class="lat-logo-wrap">
+                <img id="headerLogo"
+                     src="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/logo.png' %}{% endif %}"
+                     alt="Logo" class="lat-logo">
+            </div>
+            <div class="lat-brand-text">
+                <span class="lat-brand-name" id="headerOrgName">{{ site_config.org_name|default:"Mi Organización" }}</span>
+                <span class="lat-brand-slogan" id="headerOrgSlogan">{{ site_config.org_slogan|default:"Transformando el futuro juntos" }}</span>
+            </div>
+        </a>
+
+        <!-- Divider -->
+        <div class="lat-divider"></div>
+
+        <!-- Nav -->
+        <nav class="lat-nav">
+            <a href="#inicio" class="lat-nav-item">
+                <span class="material-symbols-outlined">home</span>
+                <span>Inicio</span>
+            </a>
+            <a href="#envivo" class="lat-nav-item">
+                <span class="material-symbols-outlined">live_tv</span>
+                <span>En Vivo</span>
+            </a>
+            <a href="#nosotros" class="lat-nav-item">
+                <span class="material-symbols-outlined">groups</span>
+                <span>Nosotros</span>
+            </a>
+            {% for sec in site_config.dynamic_sections %}
+            <a href="#sec-{{ sec.id }}" class="lat-nav-item">
+                <span class="material-symbols-outlined">chevron_right</span>
+                <span>{{ sec.nav_label|default:sec.title }}</span>
+            </a>
+            {% endfor %}
+            <a href="#contacto" class="lat-nav-item">
+                <span class="material-symbols-outlined">contact_page</span>
+                <span>Contacto</span>
+            </a>
+        </nav>
+
+        <!-- Spacer -->
+        <div style="flex:1"></div>
+
+        <!-- Social -->
+        {% if site_config.social_instagram or site_config.social_youtube or site_config.social_facebook %}
+        <div class="lat-social">
+            {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank"><span class="material-symbols-outlined">photo_camera</span></a>{% endif %}
+            {% if site_config.social_youtube %}<a href="{{ site_config.social_youtube }}" target="_blank"><span class="material-symbols-outlined">smart_display</span></a>{% endif %}
+            {% if site_config.social_facebook %}<a href="{{ site_config.social_facebook }}" target="_blank"><span class="material-symbols-outlined">thumb_up</span></a>{% endif %}
+            {% if site_config.social_tiktok %}<a href="{{ site_config.social_tiktok }}" target="_blank"><span class="material-symbols-outlined">music_note</span></a>{% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Editor actions -->
+        <div class="lat-editor-actions">
+            <a href="https://kaircampanel.grupokairosarg.com" target="_blank" rel="noopener" class="lat-action-btn">
+                <span class="material-symbols-outlined">cast</span> Panel
+            </a>
+            {% if editor_logged_in %}
+            <a href="{% url 'editor_page' %}" class="lat-action-btn lat-action-primary">
+                <span class="material-symbols-outlined">edit</span> Editar
+            </a>
+            <a href="{% url 'editor_logout' %}" class="lat-action-btn lat-action-danger">
+                <span class="material-symbols-outlined">logout</span>
+            </a>
+            {% else %}
+            <a href="{% url 'editor_login' %}" class="lat-action-btn lat-action-primary">
+                <span class="material-symbols-outlined">lock</span> Editar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Mobile toggle -->
+    <button class="lat-toggle" id="latToggle">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+</aside>
+
+<!-- ── MAIN CONTENT ── -->
+<main class="lat-main">
+
+    <!-- HERO -->
+    <section class="lat-hero" id="inicio">
+        {% if site_config.hero_bg_url %}
+        <div class="lat-hero-bg" style="background-image:url('{{ site_config.hero_bg_url }}')"></div>
+        {% endif %}
+        <div class="lat-hero-overlay"></div>
+        <div class="lat-hero-content">
+            <p class="lat-eyebrow" data-editable="hero_eyebrow">{{ site_config.hero_eyebrow|default:"Bienvenidos" }}</p>
+            <h1 class="lat-hero-title" data-editable="hero_title">{{ site_config.hero_title|default:"Tu Organización" }}</h1>
+            <p class="lat-hero-sub" data-editable="hero_subtitle">{{ site_config.hero_subtitle|default:"Conectamos personas, ideas y propósitos." }}</p>
+            <a href="#envivo" class="lat-hero-btn" data-editable="hero_btn_text">
+                {{ site_config.hero_btn_text|default:"Conocer Más" }}
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- LIVE -->
+    <section class="lat-section lat-section-dark" id="envivo"
+        data-on-air="{{ on_air|yesno:'true,false' }}"
+        data-hls-url="{{ hls_url }}"
+        id="streamContainer">
+        <div class="lat-section-header">
+            <p class="lat-label" data-editable="live_title">{{ site_config.live_title|default:"Transmisión en Vivo" }}</p>
+            <p class="lat-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Únete a nuestra comunidad en tiempo real" }}</p>
+        </div>
+        <div class="lat-live-grid">
+            <div class="player-card" id="playerCard">
+                <div class="player-status {% if on_air %}on-air{% endif %}">
+                    <span class="status-dot {% if on_air %}on-air{% endif %}"></span>
+                    <span>{% if on_air %}EN VIVO{% else %}FUERA DE LÍNEA{% endif %}</span>
+                </div>
+                <video id="videoPlayer" class="video-player" controls playsinline preload="none"
+                    poster="{% static 'core/img/fondo.png' %}"></video>
+                <div class="play-overlay" id="playOverlay">
+                    <button class="play-btn" id="playBtn">
+                        <span class="material-symbols-outlined">play_arrow</span>
+                    </button>
+                    <p>Presioná para conectar</p>
+                </div>
+            </div>
+            <div class="chat-card" id="chatCard">
+                <div class="chat-header">
+                    <div class="chat-title-wrap"><span class="material-symbols-outlined">forum</span><span>Chat en Vivo</span></div>
+                    <span class="chat-online-count">Conectados</span>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    {% if not on_air %}<div class="chat-msg system">📴 El chat está desactivado</div>
+                    {% else %}<div class="chat-msg system">👋 ¡Bienvenido!</div>{% endif %}
+                </div>
+                <div class="chat-input-wrap">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje..." {% if not on_air %}disabled{% endif %}>
+                    <button class="chat-send-btn" id="chatSendBtn" {% if not on_air %}disabled{% endif %}>
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal nombre -->
+    <div id="modalNombre" class="modal-overlay oculto">
+        <div class="modal-box">
+            <h3>¿Cómo te llamás?</h3>
+            <p>Ingresá tu nombre para participar en el chat</p>
+            <input type="text" id="nombreUsuarioInput" placeholder="Tu nombre">
+            <button id="guardarNombreBtn">Entrar al chat</button>
+        </div>
+    </div>
+
+    <!-- ABOUT -->
+    <section class="lat-section" id="nosotros">
+        <div class="lat-about-grid">
+            <div class="lat-about-img-wrap">
+                {% if site_config.about_img_url %}
+                <img src="{{ site_config.about_img_url }}" alt="Nosotros" class="about-img">
+                {% else %}
+                <div class="about-img-placeholder">
+                    <span class="material-symbols-outlined">image</span>
+                    <span>Sin imagen</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="lat-about-content">
+                <p class="lat-label" data-editable="about_eyebrow">{{ site_config.about_eyebrow|default:"SOBRE NOSOTROS" }}</p>
+                <h2 class="lat-title" data-editable="about_title">{{ site_config.about_title|default:"Quiénes Somos" }}</h2>
+                <p class="lat-body" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia." }}</p>
+                <div class="lat-stats">
+                    <div class="lat-stat">
+                        <span class="lat-stat-n" data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</span>
+                        <span class="lat-stat-l" data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
+                    </div>
+                    <div class="lat-stat">
+                        <span class="lat-stat-n" data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</span>
+                        <span class="lat-stat-l" data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
+                    </div>
+                    <div class="lat-stat">
+                        <span class="lat-stat-n" data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</span>
+                        <span class="lat-stat-l" data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIONES DINÁMICAS -->
+    {% for section in site_config.dynamic_sections %}
+    <section class="lat-section {% if forloop.counter|divisibleby:2 %}lat-section-dark{% endif %}"
+             id="sec-{{ section.id }}" data-dynamic-id="{{ section.id }}">
+        <p class="lat-label">{{ section.title }}</p>
+        {% if section.subtitle %}<p class="lat-sub">{{ section.subtitle }}</p>{% endif %}
+        <div class="lat-cards-grid">
+            {% for card in section.cards %}
+            <div class="lat-card" data-card-id="{{ forloop.counter0 }}">
+                <span class="material-symbols-outlined lat-card-icon">{{ card.icon|default:"star" }}</span>
+                <h3 class="lat-card-title">{{ card.title }}</h3>
+                <p class="lat-card-text">{{ card.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+
+    <!-- CONTACTO -->
+    <section class="lat-section lat-section-dark" id="contacto">
+        <div class="lat-section-header">
+            <p class="lat-label" data-editable="contact_title">{{ site_config.contact_title|default:"Contacto" }}</p>
+            <p class="lat-sub" data-editable="contact_subtitle">{{ site_config.contact_subtitle|default:"Estamos aquí para ayudarte" }}</p>
+        </div>
+        <div class="lat-contact-grid">
+            <div class="lat-contact-item">
+                <span class="material-symbols-outlined">location_on</span>
+                <div><h4>Dirección</h4><p data-editable="contact_address">{{ site_config.contact_address|default:"Av. Principal 123" }}</p></div>
+            </div>
+            <div class="lat-contact-item">
+                <span class="material-symbols-outlined">mail</span>
+                <div><h4>Email</h4><p data-editable="contact_email">{{ site_config.contact_email|default:"contacto@org.com" }}</p></div>
+            </div>
+            <div class="lat-contact-item">
+                <span class="material-symbols-outlined">phone</span>
+                <div><h4>Teléfono</h4><p data-editable="contact_phone">{{ site_config.contact_phone|default:"+1 555 0000" }}</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="lat-footer">
+        <p>© {% now "Y" %} {{ site_config.org_name|default:"Mi Organización" }} — Todos los derechos reservados</p>
+    </footer>
+
+</main>
+</div><!-- /lat-wrap -->
+
+<script>
+// Sidebar mobile toggle
+document.getElementById('latToggle')?.addEventListener('click', () => {
+    document.getElementById('latSidebar').classList.toggle('open');
+});
+// Active nav on scroll
+const sections = document.querySelectorAll('section[id]');
+const navItems = document.querySelectorAll('.lat-nav-item');
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            navItems.forEach(a => a.classList.remove('active'));
+            const active = document.querySelector(`.lat-nav-item[href="#${e.target.id}"]`);
+            if (active) active.classList.add('active');
+        }
+    });
+}, { threshold: 0.4 });
+sections.forEach(s => observer.observe(s));
+</script>

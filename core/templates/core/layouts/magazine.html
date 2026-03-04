@@ -1,0 +1,236 @@
+{% load static %}
+<!-- ═══════════════════════════════════════════
+     LAYOUT: MAGAZINE
+     Header centrado minimalista, hero dividido 50/50,
+     tipografía editorial, fondo claro con acento vivo
+═══════════════════════════════════════════ -->
+
+<!-- ── HEADER ── -->
+<header class="mag-header" id="siteHeader">
+    <div class="mag-header-top">
+        <p class="mag-header-date">{{ site_config.org_slogan|default:"Transformando el futuro juntos" }}</p>
+        <div class="mag-header-actions">
+            <a href="https://kaircampanel.grupokairosarg.com" target="_blank" rel="noopener" class="mag-action-link">
+                <span class="material-symbols-outlined">cast</span> Panel
+            </a>
+            {% if editor_logged_in %}
+            <a href="{% url 'editor_page' %}" class="mag-action-link">
+                <span class="material-symbols-outlined">edit</span> Editar
+            </a>
+            <a href="{% url 'editor_logout' %}" class="mag-action-link mag-action-danger">
+                <span class="material-symbols-outlined">logout</span>
+            </a>
+            {% else %}
+            <a href="{% url 'editor_login' %}" class="mag-action-link">
+                <span class="material-symbols-outlined">lock</span> Editar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mag-header-main">
+        <a class="mag-brand" href="#inicio">
+            <img id="headerLogo"
+                 src="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/logo.png' %}{% endif %}"
+                 alt="Logo" class="mag-logo">
+            <span class="mag-brand-name" id="headerOrgName">{{ site_config.org_name|default:"Mi Organización" }}</span>
+        </a>
+    </div>
+    <nav class="mag-nav">
+        <a href="#inicio">Inicio</a>
+        <a href="#envivo">En Vivo</a>
+        <a href="#nosotros">Nosotros</a>
+        {% for sec in site_config.dynamic_sections %}
+        <a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
+        {% endfor %}
+        <a href="#contacto">Contacto</a>
+    </nav>
+</header>
+
+<!-- ── HERO SPLIT ── -->
+<section class="mag-hero" id="inicio">
+    <!-- Mitad izquierda: texto -->
+    <div class="mag-hero-left">
+        <p class="mag-eyebrow" data-editable="hero_eyebrow">{{ site_config.hero_eyebrow|default:"Bienvenidos" }}</p>
+        <h1 class="mag-hero-title" data-editable="hero_title">{{ site_config.hero_title|default:"Tu Organización" }}</h1>
+        <p class="mag-hero-sub" data-editable="hero_subtitle">{{ site_config.hero_subtitle|default:"Conectamos personas, ideas y propósitos para crear un impacto positivo." }}</p>
+        <a href="#envivo" class="mag-hero-btn" data-editable="hero_btn_text">
+            {{ site_config.hero_btn_text|default:"Conocer Más" }}
+        </a>
+    </div>
+    <!-- Mitad derecha: imagen o degradado -->
+    <div class="mag-hero-right">
+        {% if site_config.hero_bg_url %}
+        <img src="{{ site_config.hero_bg_url }}" alt="Hero" class="mag-hero-img">
+        {% else %}
+        <div class="mag-hero-placeholder">
+            <div class="mag-hero-shape mag-hero-shape-1"></div>
+            <div class="mag-hero-shape mag-hero-shape-2"></div>
+            <div class="mag-hero-shape mag-hero-shape-3"></div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ── LIVE ── -->
+<section class="mag-section mag-section-accent" id="envivo"
+    data-on-air="{{ on_air|yesno:'true,false' }}"
+    data-hls-url="{{ hls_url }}"
+    id="streamContainer">
+    <div class="mag-container">
+        <div class="mag-section-header mag-section-header-left">
+            <span class="mag-tag">{{ site_config.live_title|default:"Transmisión en Vivo" }}</span>
+            <p class="mag-section-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Únete en tiempo real" }}</p>
+        </div>
+        <div class="mag-live-grid">
+            <div class="player-card" id="playerCard">
+                <div class="player-status {% if on_air %}on-air{% endif %}">
+                    <span class="status-dot {% if on_air %}on-air{% endif %}"></span>
+                    <span>{% if on_air %}EN VIVO{% else %}FUERA DE LÍNEA{% endif %}</span>
+                </div>
+                <video id="videoPlayer" class="video-player" controls playsinline preload="none"
+                    poster="{% static 'core/img/fondo.png' %}"></video>
+                <div class="play-overlay" id="playOverlay">
+                    <button class="play-btn" id="playBtn">
+                        <span class="material-symbols-outlined">play_arrow</span>
+                    </button>
+                    <p>Presioná para conectar</p>
+                </div>
+            </div>
+            <div class="chat-card" id="chatCard">
+                <div class="chat-header">
+                    <div class="chat-title-wrap"><span class="material-symbols-outlined">forum</span><span>Chat en Vivo</span></div>
+                    <span class="chat-online-count">Conectados</span>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    {% if not on_air %}<div class="chat-msg system">📴 El chat está desactivado</div>
+                    {% else %}<div class="chat-msg system">👋 ¡Bienvenido!</div>{% endif %}
+                </div>
+                <div class="chat-input-wrap">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje..." {% if not on_air %}disabled{% endif %}>
+                    <button class="chat-send-btn" id="chatSendBtn" {% if not on_air %}disabled{% endif %}>
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal -->
+<div id="modalNombre" class="modal-overlay oculto">
+    <div class="modal-box">
+        <h3>¿Cómo te llamás?</h3>
+        <p>Ingresá tu nombre para participar en el chat</p>
+        <input type="text" id="nombreUsuarioInput" placeholder="Tu nombre">
+        <button id="guardarNombreBtn">Entrar al chat</button>
+    </div>
+</div>
+
+<!-- ── ABOUT ── -->
+<section class="mag-section" id="nosotros">
+    <div class="mag-container">
+        <div class="mag-about-grid">
+            <div class="mag-about-text">
+                <span class="mag-tag" data-editable="about_eyebrow">{{ site_config.about_eyebrow|default:"SOBRE NOSOTROS" }}</span>
+                <h2 class="mag-title" data-editable="about_title">{{ site_config.about_title|default:"Quiénes Somos" }}</h2>
+                <p class="mag-body" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia." }}</p>
+                <div class="mag-stats">
+                    <div class="mag-stat">
+                        <span class="mag-stat-n" data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</span>
+                        <span class="mag-stat-l" data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
+                    </div>
+                    <div class="mag-stat">
+                        <span class="mag-stat-n" data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</span>
+                        <span class="mag-stat-l" data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
+                    </div>
+                    <div class="mag-stat">
+                        <span class="mag-stat-n" data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</span>
+                        <span class="mag-stat-l" data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mag-about-img-wrap">
+                {% if site_config.about_img_url %}
+                <img src="{{ site_config.about_img_url }}" alt="Nosotros" class="about-img">
+                {% else %}
+                <div class="about-img-placeholder">
+                    <span class="material-symbols-outlined">image</span>
+                    <span>Sin imagen</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── SECCIONES DINÁMICAS ── -->
+{% for section in site_config.dynamic_sections %}
+<section class="mag-section {% if forloop.counter|divisibleby:2 %}mag-section-alt{% endif %}"
+         id="sec-{{ section.id }}" data-dynamic-id="{{ section.id }}">
+    <div class="mag-container">
+        <div class="mag-section-header">
+            <span class="mag-tag">{{ section.title }}</span>
+            {% if section.subtitle %}<p class="mag-section-sub">{{ section.subtitle }}</p>{% endif %}
+        </div>
+        <div class="mag-cards-grid">
+            {% for card in section.cards %}
+            <div class="mag-card" data-card-id="{{ forloop.counter0 }}">
+                <div class="mag-card-num">0{{ forloop.counter }}</div>
+                <span class="material-symbols-outlined mag-card-icon">{{ card.icon|default:"star" }}</span>
+                <h3 class="mag-card-title">{{ card.title }}</h3>
+                <p class="mag-card-text">{{ card.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endfor %}
+
+<!-- ── CONTACTO ── -->
+<section class="mag-section mag-section-dark" id="contacto">
+    <div class="mag-container">
+        <div class="mag-section-header">
+            <span class="mag-tag mag-tag-light" data-editable="contact_title">{{ site_config.contact_title|default:"Contacto" }}</span>
+            <p class="mag-section-sub mag-section-sub-light" data-editable="contact_subtitle">{{ site_config.contact_subtitle|default:"Estamos aquí para ayudarte" }}</p>
+        </div>
+        <div class="mag-contact-grid">
+            <div class="mag-contact-item">
+                <span class="material-symbols-outlined">location_on</span>
+                <div><h4>Dirección</h4><p data-editable="contact_address">{{ site_config.contact_address|default:"Av. Principal 123" }}</p></div>
+            </div>
+            <div class="mag-contact-item">
+                <span class="material-symbols-outlined">mail</span>
+                <div><h4>Email</h4><p data-editable="contact_email">{{ site_config.contact_email|default:"contacto@org.com" }}</p></div>
+            </div>
+            <div class="mag-contact-item">
+                <span class="material-symbols-outlined">phone</span>
+                <div><h4>Teléfono</h4><p data-editable="contact_phone">{{ site_config.contact_phone|default:"+1 555 0000" }}</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="mag-footer">
+    <div class="mag-footer-inner">
+        <div class="mag-footer-brand">
+            <img src="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/logo.png' %}{% endif %}" alt="Logo" class="footer-logo">
+            <span class="footer-org-name" id="headerOrgName">{{ site_config.org_name|default:"Mi Organización" }}</span>
+        </div>
+        <div class="mag-footer-links">
+            <a href="#inicio">Inicio</a>
+            <a href="#envivo">En Vivo</a>
+            <a href="#nosotros">Nosotros</a>
+            <a href="#contacto">Contacto</a>
+        </div>
+        <div class="mag-footer-social">
+            {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank"><span class="material-symbols-outlined">photo_camera</span></a>{% endif %}
+            {% if site_config.social_youtube %}<a href="{{ site_config.social_youtube }}" target="_blank"><span class="material-symbols-outlined">smart_display</span></a>{% endif %}
+            {% if site_config.social_facebook %}<a href="{{ site_config.social_facebook }}" target="_blank"><span class="material-symbols-outlined">thumb_up</span></a>{% endif %}
+            {% if site_config.social_tiktok %}<a href="{{ site_config.social_tiktok }}" target="_blank"><span class="material-symbols-outlined">music_note</span></a>{% endif %}
+        </div>
+    </div>
+    <div class="mag-footer-bottom">
+        <p>© {% now "Y" %} {{ site_config.org_name|default:"Mi Organización" }}</p>
+    </div>
+</footer>

@@ -1,0 +1,400 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor — {{ site_config.org_name|default:"Mi Organización" }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'core/css/editor_page.css' %}">
+</head>
+<body>
+
+<header class="ep-topbar">
+    <div class="ep-topbar-left">
+        <img src="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/kaircam-logo.png' %}{% endif %}"
+             alt="Logo" class="ep-topbar-logo" id="epTopbarLogo">
+        <span class="ep-topbar-name" id="epTopbarName">{{ site_config.org_name|default:"Mi Organización" }}</span>
+        <span class="ep-topbar-badge">Editor</span>
+    </div>
+
+    <div class="ep-topbar-center">
+        <nav class="ep-tabs" id="epTabs">
+            <button class="ep-tab active" data-tab="templates" data-tooltip="Plantillas">
+                <span class="material-symbols-outlined">palette</span>
+            </button>
+            <button class="ep-tab" data-tab="identity" data-tooltip="Identidad">
+                <span class="material-symbols-outlined">badge</span>
+            </button>
+            <button class="ep-tab" data-tab="hero" data-tooltip="Hero">
+                <span class="material-symbols-outlined">crop_landscape</span>
+            </button>
+            <button class="ep-tab" data-tab="about" data-tooltip="Nosotros">
+                <span class="material-symbols-outlined">info</span>
+            </button>
+            <button class="ep-tab" data-tab="sections" data-tooltip="Secciones">
+                <span class="material-symbols-outlined">dashboard</span>
+            </button>
+            <button class="ep-tab" data-tab="contact" data-tooltip="Contacto">
+                <span class="material-symbols-outlined">contact_page</span>
+            </button>
+            <button class="ep-tab" data-tab="social" data-tooltip="Redes">
+                <span class="material-symbols-outlined">share</span>
+            </button>
+            <button class="ep-tab" data-tab="style" data-tooltip="Estilo">
+                <span class="material-symbols-outlined">format_paint</span>
+            </button>
+        </nav>
+    </div>
+
+    <div class="ep-topbar-right">
+        <button class="ep-btn-secondary" id="epResetBtn">
+            <span class="material-symbols-outlined">restart_alt</span>
+            Resetear
+        </button>
+        <button class="ep-btn-primary" id="epSaveBtn">
+            <span class="material-symbols-outlined">check</span>
+            Guardar
+        </button>
+        <a href="{% url 'home' %}" class="ep-btn-exit">
+            <span class="material-symbols-outlined">close</span>
+        </a>
+    </div>
+</header>
+
+<div class="ep-layout">
+
+    <aside class="ep-panel" id="epPanel">
+
+        <!-- TAB: PLANTILLAS -->
+        <div class="ep-tab-content active" data-tab-content="templates">
+            <div class="ep-section-title">Plantilla</div>
+            <p class="ep-section-desc">Elegí un diseño base para tu sitio</p>
+            <div class="ep-templates-list" id="epTemplatesList">
+                {% for tpl in plantillas %}
+                <div class="ep-template-item {% if site_config.template == tpl.id %}active{% endif %}"
+                     data-template="{{ tpl.id }}">
+                    <div class="ep-tpl-preview ep-tpl-{{ tpl.id }}"></div>
+                    <div class="ep-tpl-info">
+                        <div class="ep-tpl-header">
+                            <span class="ep-tpl-name">{{ tpl.nombre }}</span>
+                            <span class="ep-tpl-check material-symbols-outlined">check_circle</span>
+                        </div>
+                        <p class="ep-tpl-desc">{{ tpl.descripcion }}</p>
+                        <div class="ep-tpl-colors">
+                            {% for color in tpl.colores %}
+                            <span style="background:{{ color }}"></span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- TAB: IDENTIDAD -->
+        <div class="ep-tab-content" data-tab-content="identity">
+            <div class="ep-section-title">Identidad</div>
+            <div class="ep-field">
+                <label>Logo</label>
+                <div class="ep-img-preview-wrap ep-logo-wrap" id="epLogoPrevWrap">
+                    <img id="epLogoPreview"
+                         src="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/logo.png' %}{% endif %}"
+                         alt="Logo actual" style="width:100%;height:100%;object-fit:contain;padding:6px">
+                </div>
+                <input type="file" id="epLogoUpload" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none">
+                <button class="ep-btn-upload" onclick="document.getElementById('epLogoUpload').click()">
+                    <span class="material-symbols-outlined">upload</span> Subir Logo
+                </button>
+                <p class="ep-hint">PNG, JPG, SVG, WEBP — máx. 5MB</p>
+            </div>
+            <div class="ep-field">
+                <label>Nombre de la organización</label>
+                <input type="text" class="ep-input" data-key="org_name" value="{{ site_config.org_name|default:'Mi Organización' }}">
+            </div>
+            <div class="ep-field">
+                <label>Slogan</label>
+                <input type="text" class="ep-input" data-key="org_slogan" value="{{ site_config.org_slogan|default:'Transformando el futuro juntos' }}">
+            </div>
+        </div>
+
+        <!-- TAB: HERO -->
+        <div class="ep-tab-content" data-tab-content="hero">
+            <div class="ep-section-title">Hero</div>
+            <div class="ep-field">
+                <label>Texto pequeño (eyebrow)</label>
+                <input type="text" class="ep-input" data-key="hero_eyebrow" value="{{ site_config.hero_eyebrow|default:'Bienvenidos' }}">
+            </div>
+            <div class="ep-field">
+                <label>Título principal</label>
+                <input type="text" class="ep-input" data-key="hero_title" value="{{ site_config.hero_title|default:'Tu Organización' }}">
+            </div>
+            <div class="ep-field">
+                <label>Subtítulo</label>
+                <textarea class="ep-input ep-textarea" data-key="hero_subtitle">{{ site_config.hero_subtitle|default:'Conectamos personas, ideas y propósitos.' }}</textarea>
+            </div>
+            <div class="ep-field">
+                <label>Texto del botón</label>
+                <input type="text" class="ep-input" data-key="hero_btn_text" value="{{ site_config.hero_btn_text|default:'Conocer Más' }}">
+            </div>
+            <div class="ep-field">
+                <label>Imagen de fondo</label>
+                <div class="ep-img-preview-wrap" id="epHeroBgPreview">
+                    <div class="ep-img-empty">
+                        <span class="material-symbols-outlined">image</span>
+                        <span>Sin imagen</span>
+                    </div>
+                </div>
+                <input type="file" id="epHeroBgUpload" accept="image/*" style="display:none">
+                <button class="ep-btn-upload" onclick="document.getElementById('epHeroBgUpload').click()">
+                    <span class="material-symbols-outlined">upload</span> Subir fondo
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB: NOSOTROS -->
+        <div class="ep-tab-content" data-tab-content="about">
+            <div class="ep-section-title">Sobre Nosotros</div>
+            <div class="ep-field">
+                <label>Etiqueta superior</label>
+                <input type="text" class="ep-input" data-key="about_eyebrow" value="{{ site_config.about_eyebrow|default:'SOBRE NOSOTROS' }}">
+            </div>
+            <div class="ep-field">
+                <label>Título</label>
+                <input type="text" class="ep-input" data-key="about_title" value="{{ site_config.about_title|default:'Quiénes Somos' }}">
+            </div>
+            <div class="ep-field">
+                <label>Descripción</label>
+                <textarea class="ep-input ep-textarea" data-key="about_text">{{ site_config.about_text|default:'Somos una organización comprometida.' }}</textarea>
+            </div>
+            <div class="ep-field">
+                <label>Imagen</label>
+                <div class="ep-img-preview-wrap" id="epAboutImgPreview">
+                    <div class="ep-img-empty">
+                        <span class="material-symbols-outlined">image</span>
+                        <span>Sin imagen</span>
+                    </div>
+                </div>
+                <input type="file" id="epAboutImgUpload" accept="image/*" style="display:none">
+                <button class="ep-btn-upload" onclick="document.getElementById('epAboutImgUpload').click()">
+                    <span class="material-symbols-outlined">upload</span> Subir imagen
+                </button>
+            </div>
+            <div class="ep-subsection">Estadísticas</div>
+            <div class="ep-field-row">
+                <div class="ep-field"><label>Número 1</label><input type="text" class="ep-input" data-key="stat1_number" value="{{ site_config.stat1_number|default:'10+' }}"></div>
+                <div class="ep-field"><label>Etiqueta 1</label><input type="text" class="ep-input" data-key="stat1_label" value="{{ site_config.stat1_label|default:'Años' }}"></div>
+            </div>
+            <div class="ep-field-row">
+                <div class="ep-field"><label>Número 2</label><input type="text" class="ep-input" data-key="stat2_number" value="{{ site_config.stat2_number|default:'500+' }}"></div>
+                <div class="ep-field"><label>Etiqueta 2</label><input type="text" class="ep-input" data-key="stat2_label" value="{{ site_config.stat2_label|default:'Miembros' }}"></div>
+            </div>
+            <div class="ep-field-row">
+                <div class="ep-field"><label>Número 3</label><input type="text" class="ep-input" data-key="stat3_number" value="{{ site_config.stat3_number|default:'20+' }}"></div>
+                <div class="ep-field"><label>Etiqueta 3</label><input type="text" class="ep-input" data-key="stat3_label" value="{{ site_config.stat3_label|default:'Países' }}"></div>
+            </div>
+        </div>
+
+        <!-- TAB: SECCIONES DINÁMICAS -->
+        <div class="ep-tab-content" data-tab-content="sections">
+            <div class="ep-section-title">Secciones</div>
+            <p class="ep-section-desc">Agregá bloques personalizados en distintas posiciones de la página</p>
+
+            <!-- Picker de tipo + posición -->
+            <div class="ep-add-section-box" id="epAddSectionBox">
+                <div class="ep-subsection" style="margin-top:0">Tipo de sección</div>
+                <div class="ep-type-grid">
+                    <button class="ep-type-btn active" data-type="cards">
+                        <span class="material-symbols-outlined">grid_view</span>
+                        <span>Tarjetas</span>
+                    </button>
+                    <button class="ep-type-btn" data-type="banner">
+                        <span class="material-symbols-outlined">panorama</span>
+                        <span>Banner</span>
+                    </button>
+                    <button class="ep-type-btn" data-type="split">
+                        <span class="material-symbols-outlined">view_agenda</span>
+                        <span>Texto + Imagen</span>
+                    </button>
+                </div>
+
+                <div class="ep-subsection">Posición</div>
+                <div class="ep-position-list">
+                    <label class="ep-position-opt">
+                        <input type="radio" name="secPosition" value="before_player" checked>
+                        <span class="ep-position-icon"><span class="material-symbols-outlined">arrow_upward</span></span>
+                        <span class="ep-position-label">Antes del reproductor</span>
+                    </label>
+                    <label class="ep-position-opt">
+                        <input type="radio" name="secPosition" value="after_player">
+                        <span class="ep-position-icon"><span class="material-symbols-outlined">arrow_downward</span></span>
+                        <span class="ep-position-label">Después del reproductor</span>
+                    </label>
+                    <label class="ep-position-opt">
+                        <input type="radio" name="secPosition" value="before_contact">
+                        <span class="ep-position-icon"><span class="material-symbols-outlined">vertical_align_bottom</span></span>
+                        <span class="ep-position-label">Antes del contacto</span>
+                    </label>
+                </div>
+
+                <button class="ep-btn-primary ep-full-width" id="epAddSectionBtn" style="margin-top:12px">
+                    <span class="material-symbols-outlined">add</span>
+                    Agregar Sección
+                </button>
+            </div>
+
+            <div id="epDynamicList" style="margin-top:16px"></div>
+        </div>
+
+        <!-- TAB: CONTACTO -->
+        <div class="ep-tab-content" data-tab-content="contact">
+            <div class="ep-section-title">Contacto</div>
+            <div class="ep-field"><label>Título</label><input type="text" class="ep-input" data-key="contact_title" value="{{ site_config.contact_title|default:'Contacto' }}"></div>
+            <div class="ep-field"><label>Subtítulo</label><input type="text" class="ep-input" data-key="contact_subtitle" value="{{ site_config.contact_subtitle|default:'Estamos aquí para ayudarte' }}"></div>
+            <div class="ep-field"><label>Dirección</label><input type="text" class="ep-input" data-key="contact_address" value="{{ site_config.contact_address|default:'Av. Principal 123' }}"></div>
+            <div class="ep-field"><label>Email</label><input type="email" class="ep-input" data-key="contact_email" value="{{ site_config.contact_email|default:'contacto@tuorg.com' }}"></div>
+            <div class="ep-field"><label>Teléfono</label><input type="text" class="ep-input" data-key="contact_phone" value="{{ site_config.contact_phone|default:'+1 555 0000' }}"></div>
+        </div>
+
+        <!-- TAB: REDES -->
+        <div class="ep-tab-content" data-tab-content="social">
+            <div class="ep-section-title">Redes Sociales</div>
+            <div class="ep-field"><label>Instagram</label><input type="url" class="ep-input" data-key="social_instagram" value="{{ site_config.social_instagram|default:'' }}" placeholder="https://instagram.com/..."></div>
+            <div class="ep-field"><label>YouTube</label><input type="url" class="ep-input" data-key="social_youtube" value="{{ site_config.social_youtube|default:'' }}" placeholder="https://youtube.com/..."></div>
+            <div class="ep-field"><label>Facebook</label><input type="url" class="ep-input" data-key="social_facebook" value="{{ site_config.social_facebook|default:'' }}" placeholder="https://facebook.com/..."></div>
+            <div class="ep-field"><label>TikTok</label><input type="url" class="ep-input" data-key="social_tiktok" value="{{ site_config.social_tiktok|default:'' }}" placeholder="https://tiktok.com/..."></div>
+        </div>
+
+        <!-- TAB: ESTILO -->
+        <div class="ep-tab-content" data-tab-content="style">
+            <div class="ep-section-title">Estilo</div>
+            <p class="ep-section-desc">Los cambios se aplican en tiempo real en la vista previa</p>
+
+            <div class="ep-subsection" style="margin-top:0">Paletas rápidas</div>
+            <div class="ep-color-presets" id="epColorPresets">
+                <button class="ep-color-preset active" data-preset="default" title="Dorado Oscuro">
+                    <span style="background:#0d1b2a"></span>
+                    <span style="background:#c9a84c"></span>
+                    <span style="background:#f0f4f8"></span>
+                </button>
+                <button class="ep-color-preset" data-preset="emerald" title="Esmeralda">
+                    <span style="background:#0a1628"></span>
+                    <span style="background:#10b981"></span>
+                    <span style="background:#ecfdf5"></span>
+                </button>
+                <button class="ep-color-preset" data-preset="sunset" title="Rojo">
+                    <span style="background:#1a0a0a"></span>
+                    <span style="background:#ef4444"></span>
+                    <span style="background:#fff7f7"></span>
+                </button>
+                <button class="ep-color-preset" data-preset="ocean" title="Océano">
+                    <span style="background:#0c1a2e"></span>
+                    <span style="background:#3b82f6"></span>
+                    <span style="background:#eff6ff"></span>
+                </button>
+                <button class="ep-color-preset" data-preset="purple" title="Violeta">
+                    <span style="background:#13001f"></span>
+                    <span style="background:#a855f7"></span>
+                    <span style="background:#faf5ff"></span>
+                </button>
+                <button class="ep-color-preset" data-preset="rose" title="Rosa">
+                    <span style="background:#1a0010"></span>
+                    <span style="background:#f43f5e"></span>
+                    <span style="background:#fff1f2"></span>
+                </button>
+            </div>
+
+            <div class="ep-subsection">Colores personalizados</div>
+
+            <div class="ep-field ep-color-field">
+                <label>Fondo principal</label>
+                <div class="ep-color-row">
+                    <input type="color" class="ep-color-input" data-key="color_bg_primary" value="{{ site_config.color_bg_primary|default:'#0d1b2a' }}">
+                    <input type="text" class="ep-input ep-color-text" data-key="color_bg_primary" value="{{ site_config.color_bg_primary|default:'#0d1b2a' }}">
+                </div>
+            </div>
+            <div class="ep-field ep-color-field">
+                <label>Color de acento (botones, íconos, líneas)</label>
+                <div class="ep-color-row">
+                    <input type="color" class="ep-color-input" data-key="color_accent" value="{{ site_config.color_accent|default:'#c9a84c' }}">
+                    <input type="text" class="ep-input ep-color-text" data-key="color_accent" value="{{ site_config.color_accent|default:'#c9a84c' }}">
+                </div>
+            </div>
+            <div class="ep-field ep-color-field">
+                <label>Color de texto</label>
+                <div class="ep-color-row">
+                    <input type="color" class="ep-color-input" data-key="color_text" value="{{ site_config.color_text|default:'#f0f4f8' }}">
+                    <input type="text" class="ep-input ep-color-text" data-key="color_text" value="{{ site_config.color_text|default:'#f0f4f8' }}">
+                </div>
+            </div>
+
+            <div class="ep-subsection">Tipografía</div>
+
+            <div class="ep-field">
+                <label>Fuente de títulos</label>
+                <select class="ep-input ep-select" data-key="font_display">
+                    <option value="Cormorant Garamond" {% if site_config.font_display == 'Cormorant Garamond' or not site_config.font_display %}selected{% endif %}>Cormorant Garamond — Elegante</option>
+                    <option value="Playfair Display" {% if site_config.font_display == 'Playfair Display' %}selected{% endif %}>Playfair Display — Clásico</option>
+                    <option value="Montserrat" {% if site_config.font_display == 'Montserrat' %}selected{% endif %}>Montserrat — Moderno</option>
+                    <option value="Oswald" {% if site_config.font_display == 'Oswald' %}selected{% endif %}>Oswald — Bold</option>
+                    <option value="Lora" {% if site_config.font_display == 'Lora' %}selected{% endif %}>Lora — Serif suave</option>
+                    <option value="Raleway" {% if site_config.font_display == 'Raleway' %}selected{% endif %}>Raleway — Fino</option>
+                </select>
+            </div>
+            <div class="ep-field">
+                <label>Fuente de cuerpo</label>
+                <select class="ep-input ep-select" data-key="font_body">
+                    <option value="DM Sans" {% if site_config.font_body == 'DM Sans' or not site_config.font_body %}selected{% endif %}>DM Sans — Legible</option>
+                    <option value="Inter" {% if site_config.font_body == 'Inter' %}selected{% endif %}>Inter — Técnico</option>
+                    <option value="Nunito" {% if site_config.font_body == 'Nunito' %}selected{% endif %}>Nunito — Amigable</option>
+                    <option value="Source Sans 3" {% if site_config.font_body == 'Source Sans 3' %}selected{% endif %}>Source Sans — Neutral</option>
+                    <option value="Lato" {% if site_config.font_body == 'Lato' %}selected{% endif %}>Lato — Claro</option>
+                </select>
+            </div>
+
+            <!-- Preview en vivo de tipografía -->
+            <div class="ep-font-preview" id="epFontPreview">
+                <span class="ep-font-preview-title">Título de ejemplo</span>
+                <span class="ep-font-preview-body">Este es un texto de cuerpo de ejemplo para ver la fuente seleccionada.</span>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- Preview iframe -->
+    <div class="ep-preview-wrap">
+        <div class="ep-preview-topbar">
+            <div class="ep-device-btns">
+                <button class="ep-device-btn active" data-device="desktop" title="Desktop">
+                    <span class="material-symbols-outlined">desktop_windows</span>
+                </button>
+                <button class="ep-device-btn" data-device="tablet" title="Tablet">
+                    <span class="material-symbols-outlined">tablet</span>
+                </button>
+                <button class="ep-device-btn" data-device="mobile" title="Mobile">
+                    <span class="material-symbols-outlined">smartphone</span>
+                </button>
+            </div>
+            <span class="ep-preview-label">Vista previa en tiempo real</span>
+            <button class="ep-preview-reload" id="epReloadBtn" title="Recargar preview">
+                <span class="material-symbols-outlined">refresh</span>
+            </button>
+        </div>
+        <div class="ep-iframe-container" id="epIframeContainer" data-device="desktop">
+            <iframe id="epPreviewIframe" src="{% url 'home' %}" title="Preview"></iframe>
+        </div>
+    </div>
+
+</div>
+
+<div class="ep-toast" id="epToast">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span id="epToastText"></span>
+</div>
+
+<script id="epConfigData" type="application/json">{{ site_config_json|safe }}</script>
+<script src="{% static 'core/js/editor_page.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión — Kaircam</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-brand">
+                <img src="{% static 'core/img/kaircam-logo.png' %}" alt="Kaircam" class="login-logo">
+                <span class="login-brand-name">Kaircam</span>
+            </div>
+            <h1 class="login-title">Iniciar Sesión</h1>
+            {% if error %}
+                <div class="login-error">{{ error }}</div>
+            {% endif %}
+            <form method="POST" action="{% url 'editor_login' %}">
+                {% csrf_token %}
+                <div class="login-field">
+                    <label for="username">USUARIO</label>
+                    <input type="text" id="username" name="username" required placeholder="usuario">
+                </div>
+                <div class="login-field">
+                    <label for="password">CONTRASEÑA</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="login-submit">Ingresar</button>
+            </form>
+            <a href="https://kaircampanel.grupokairosarg.com" target="_blank" class="login-panel-link">Ir al Panel de Transmisión</a>
+        </div>
+    </div>
+    <script src="{% static 'core/js/login.js' %}"></script>
+</body>
+</html>

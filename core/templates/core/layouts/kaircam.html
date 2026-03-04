@@ -1,0 +1,311 @@
+{% load static %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'core/css/templates/kaircam.css' %}">
+
+<div class="kc-noise" aria-hidden="true"></div>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<header class="kc-header" id="siteHeader">
+    <div class="kc-wrap kc-header-inner">
+
+        <a href="#inicio" class="kc-brand">
+            {% if site_config.logo_url %}
+            <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="kc-logo-img" id="headerLogo">
+            {% else %}
+            <div class="kc-logo" id="headerLogo">
+                <span class="kc-logo-dot"></span>
+                <span class="kc-logo-k">K</span>
+            </div>
+            {% endif %}
+            <div class="kc-brand-text">
+                <span class="kc-brand-name" id="headerOrgName">{{ site_config.org_name|default:"KAIRCAM" }}</span>
+                <span class="kc-brand-tag"  id="headerOrgSlogan">{{ site_config.org_slogan|default:"STREAMING CONTROL" }}</span>
+            </div>
+        </a>
+
+        <nav class="kc-nav" id="siteNav">
+            <a href="#inicio"   class="kc-nav-a">Inicio</a>
+            <a href="#envivo"   class="kc-nav-a">En Vivo</a>
+            <a href="#nosotros" class="kc-nav-a">Nosotros</a>
+            {% for sec in site_config.dynamic_sections %}
+            <a href="#sec-{{ sec.id }}" class="kc-nav-a">{{ sec.nav_label|default:sec.title }}</a>
+            {% endfor %}
+            <a href="#contacto" class="kc-nav-a">Contacto</a>
+        </nav>
+
+        <div class="kc-header-right">
+            <a href="https://kaircampanel.grupokairosarg.com" target="_blank" class="kc-btn kc-ghost">
+                <span class="material-symbols-outlined">cast</span>
+                <span class="kc-btn-txt">Panel</span>
+            </a>
+            {% if editor_logged_in %}
+            <a href="{% url 'editor_page' %}" class="kc-btn kc-red">
+                <span class="material-symbols-outlined">edit</span>
+                <span class="kc-btn-txt">Editar</span>
+            </a>
+            <a href="{% url 'editor_logout' %}" class="kc-btn kc-icon-btn" title="Salir">
+                <span class="material-symbols-outlined">logout</span>
+            </a>
+            {% else %}
+            <a href="{% url 'editor_login' %}" class="kc-btn kc-red">
+                <span class="material-symbols-outlined">lock</span>
+                <span class="kc-btn-txt">Editar</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <button class="kc-burger" id="navToggle" aria-label="Menú">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+    <!-- Línea de señal animada -->
+    <div class="kc-signal-bar"></div>
+</header>
+
+<div class="site-content">
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="kc-hero" id="inicio">
+    <!-- Fondo decorativo — grid + glow -->
+    <div class="kc-hero-bg" aria-hidden="true">
+        <div class="kc-grid-lines"></div>
+        <div class="kc-glow-left"></div>
+        <div class="kc-glow-right"></div>
+    </div>
+
+    {% if site_config.hero_bg_url %}
+    <div class="kc-hero-photo" style="background-image:url('{{ site_config.hero_bg_url }}')"></div>
+    {% endif %}
+
+    <div class="kc-wrap kc-hero-inner">
+        <div class="kc-hero-copy">
+            <div class="kc-pill">
+                <span class="kc-dot kc-dot-live"></span>
+                <span data-editable="hero_eyebrow">{{ site_config.hero_eyebrow|default:"Bienvenidos" }}</span>
+            </div>
+
+            <h1 class="kc-h1" data-editable="hero_title">
+                {{ site_config.hero_title|default:"Tu Organización" }}
+            </h1>
+
+            <p class="kc-hero-sub" data-editable="hero_subtitle">
+                {{ site_config.hero_subtitle|default:"Conectamos personas, ideas y propósitos para crear un impacto real." }}
+            </p>
+
+            <div class="kc-hero-actions">
+                <a href="#envivo" class="kc-btn kc-red kc-btn-lg" data-editable="hero_btn_text">
+                    <span class="material-symbols-outlined">play_circle</span>
+                    {{ site_config.hero_btn_text|default:"Ver transmisión" }}
+                </a>
+                <a href="#nosotros" class="kc-btn kc-ghost kc-btn-lg">Conocer más</a>
+            </div>
+        </div>
+
+        <!-- Stats en tarjeta lateral -->
+        <div class="kc-stat-block">
+            <div class="kc-stat-block-bar"></div>
+            <div class="kc-stat">
+                <strong data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</strong>
+                <span   data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
+            </div>
+            <div class="kc-stat-divider"></div>
+            <div class="kc-stat">
+                <strong data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</strong>
+                <span   data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
+            </div>
+            <div class="kc-stat-divider"></div>
+            <div class="kc-stat">
+                <strong data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</strong>
+                <span   data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="kc-hero-slash" aria-hidden="true"></div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIONES DINÁMICAS — ANTES DEL PLAYER
+══════════════════════════════════════════ -->
+{% for section in site_config.dynamic_sections %}
+{% if section.position == "before_player" %}
+{% include "core/includes/dynamic_section.html" with sec=section %}
+{% endif %}
+{% endfor %}
+
+<!-- ══════════════════════════════════════════
+     LIVE — PLAYER + CHAT
+══════════════════════════════════════════ -->
+<section class="kc-live" id="envivo" data-section="stream">
+    <div class="kc-wrap">
+        <div class="kc-sec-head">
+            <div class="kc-live-badge">
+                <span class="kc-dot {% if on_air %}kc-dot-live{% endif %}"></span>
+                {% if on_air %}<span class="kc-live-label">EN VIVO</span>{% endif %}
+            </div>
+            <h2 class="kc-h2" data-editable="live_title">{{ site_config.live_title|default:"Transmisión en Vivo" }}</h2>
+            <p class="kc-sec-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Únete a nuestra comunidad en tiempo real" }}</p>
+        </div>
+
+        <!-- streamContainer necesita los data-attrs para base.js -->
+        <div class="kc-stream-grid" id="streamContainer"
+             data-on-air="{{ on_air|yesno:'true,false' }}"
+             data-hls-url="{{ hls_url }}">
+            <div class="kc-player-box">
+                {% include "core/includes/player.html" %}
+            </div>
+            <div class="kc-chat-box">
+                {% include "core/includes/chat.html" %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIONES DINÁMICAS — DESPUÉS DEL PLAYER
+══════════════════════════════════════════ -->
+{% for section in site_config.dynamic_sections %}
+{% if section.position == "after_player" %}
+{% include "core/includes/dynamic_section.html" with sec=section %}
+{% endif %}
+{% endfor %}
+
+<!-- ══════════════════════════════════════════
+     ABOUT
+══════════════════════════════════════════ -->
+<section class="kc-about" id="nosotros">
+    <div class="kc-wrap kc-about-grid">
+        <div class="kc-about-img about-image-wrap">
+            {% if site_config.about_img_url %}
+            <img src="{{ site_config.about_img_url }}" alt="Sobre nosotros" class="about-img">
+            {% else %}
+            <div class="kc-img-empty">
+                <div class="kc-crosshair"></div>
+                <span class="material-symbols-outlined">groups</span>
+                <span>Tu organización</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="kc-about-body">
+            <span class="kc-tag" data-editable="about_eyebrow">{{ site_config.about_eyebrow|default:"SOBRE NOSOTROS" }}</span>
+            <h2 class="kc-h2 about-title" data-editable="about_title">{{ site_config.about_title|default:"Quiénes Somos" }}</h2>
+            <p class="kc-body about-text" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia y la innovación, trabajando cada día para transformar vidas y comunidades." }}</p>
+            <div class="kc-accent-line"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECCIONES DINÁMICAS — ANTES DEL CONTACTO
+══════════════════════════════════════════ -->
+{% for section in site_config.dynamic_sections %}
+{% if section.position == "before_contact" or not section.position %}
+{% include "core/includes/dynamic_section.html" with sec=section %}
+{% endif %}
+{% endfor %}
+
+<!-- ══════════════════════════════════════════
+     CONTACT
+══════════════════════════════════════════ -->
+<section class="kc-contact" id="contacto" data-section="contact">
+    <div class="kc-wrap">
+        <div class="kc-sec-head">
+            <h2 class="kc-h2" data-editable="contact_title">{{ site_config.contact_title|default:"Contacto" }}</h2>
+            <p class="kc-sec-sub" data-editable="contact_subtitle">{{ site_config.contact_subtitle|default:"Estamos aquí para ayudarte" }}</p>
+        </div>
+        <div class="kc-contact-grid">
+            <div class="kc-contact-card">
+                <div class="kc-contact-ico"><span class="material-symbols-outlined">location_on</span></div>
+                <div>
+                    <h4>Dirección</h4>
+                    <p data-editable="contact_address">{{ site_config.contact_address|default:"Av. Principal 123, Ciudad, País" }}</p>
+                </div>
+            </div>
+            <div class="kc-contact-card">
+                <div class="kc-contact-ico"><span class="material-symbols-outlined">mail</span></div>
+                <div>
+                    <h4>Email</h4>
+                    <p data-editable="contact_email">{{ site_config.contact_email|default:"contacto@tuorganizacion.com" }}</p>
+                </div>
+            </div>
+            <div class="kc-contact-card">
+                <div class="kc-contact-ico"><span class="material-symbols-outlined">phone</span></div>
+                <div>
+                    <h4>Teléfono</h4>
+                    <p data-editable="contact_phone">{{ site_config.contact_phone|default:"+1 (555) 123-4567" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</div><!-- /site-content -->
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer class="kc-footer">
+    <div class="kc-wrap kc-footer-top">
+        <div class="kc-footer-brand">
+            {% if site_config.logo_url %}
+            <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="kc-logo-img kc-logo-sm">
+            {% else %}
+            <div class="kc-logo kc-logo-sm">
+                <span class="kc-logo-dot"></span>
+                <span class="kc-logo-k">K</span>
+            </div>
+            {% endif %}
+            <div>
+                <span class="kc-footer-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>
+                <span class="kc-footer-slogan footer-slogan">{{ site_config.org_slogan|default:"Streaming Control" }}</span>
+            </div>
+        </div>
+
+        <nav class="kc-footer-nav">
+            <a href="#inicio">Inicio</a>
+            <a href="#envivo">En Vivo</a>
+            <a href="#nosotros">Nosotros</a>
+            {% for sec in site_config.dynamic_sections %}
+            <a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
+            {% endfor %}
+            <a href="#contacto">Contacto</a>
+        </nav>
+
+        <div class="kc-footer-social">
+            {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank" aria-label="Instagram"><span class="material-symbols-outlined">photo_camera</span></a>{% endif %}
+            {% if site_config.social_youtube   %}<a href="{{ site_config.social_youtube   }}" target="_blank" aria-label="YouTube"><span class="material-symbols-outlined">smart_display</span></a>{% endif %}
+            {% if site_config.social_facebook  %}<a href="{{ site_config.social_facebook  }}" target="_blank" aria-label="Facebook"><span class="material-symbols-outlined">thumb_up</span></a>{% endif %}
+            {% if site_config.social_tiktok    %}<a href="{{ site_config.social_tiktok    }}" target="_blank" aria-label="TikTok"><span class="material-symbols-outlined">music_note</span></a>{% endif %}
+        </div>
+    </div>
+
+    <div class="kc-footer-bottom">
+        <div class="kc-wrap kc-footer-bottom-inner">
+            <p>© {% now "Y" %} <span class="footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>. Todos los derechos reservados.</p>
+            <span class="kc-footer-sig">
+                <span class="kc-dot kc-dot-live" style="width:5px;height:5px"></span>
+                Kaircam Platform
+            </span>
+        </div>
+    </div>
+</footer>
+
+<!-- Modal chat -->
+<div id="modalNombre" class="kc-modal-bg oculto">
+    <div class="kc-modal">
+        <div class="kc-modal-bar"></div>
+        <h3>¿Cómo te llamás?</h3>
+        <p>Ingresá tu nombre para participar en el chat en vivo</p>
+        <input type="text" id="nombreUsuarioInput" placeholder="Tu nombre">
+        <button id="guardarNombreBtn">Entrar al chat</button>
+    </div>
+</div>
+
+<script src="{% static 'core/js/templates/kaircam.js' %}"></script>
