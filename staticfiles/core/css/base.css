@@ -1,0 +1,387 @@
+/* ═══════════════════════════════════════════════════════
+   BASE.CSS — Estilos globales + sistema de variables de tema
+   Cada template tiene su propio CSS en css/templates/X.css
+═══════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+img { max-width: 100%; display: block; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+button { cursor: pointer; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
+
+/* Scrollbar global */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(128,128,128,.25); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,.4); }
+
+/* ══════════════════════════════════════════════════════
+   SISTEMA DE VARIABLES DE TEMA
+   Estas variables son sobreescritas por el editor en tiempo
+   real vía JS (style.setProperty). Cada plantilla puede
+   tener sus defaults propios en su CSS, pero siempre
+   respetan estas variables como fuente de verdad.
+══════════════════════════════════════════════════════ */
+:root {
+    /* Colores base — sobreescritos por el editor */
+    --bg:            #0d1b2a;
+    --bg2:           #152236;
+    --bg3:           #1c2d43;
+    --card:          #132030;
+    --accent:        #c9a84c;
+    --accent2:       #d4b96a;
+    --accent-glow:   rgba(201, 168, 76, 0.18);
+    --text:          #f0f4f8;
+    --text-muted:    rgba(240, 244, 248, 0.55);
+    --border:        rgba(255, 255, 255, 0.08);
+    --border-mid:    rgba(255, 255, 255, 0.14);
+
+    /* Tipografía — sobreescrita por el editor */
+    --font-display:  'Cormorant Garamond', Georgia, serif;
+    --font-body:     'DM Sans', system-ui, sans-serif;
+
+    /* Espaciado y radio */
+    --radius:        12px;
+    --radius-sm:     8px;
+    --section-gap:   80px;
+    --container:     1200px;
+}
+
+/* ── Animaciones globales compartidas por todos los templates ── */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(8px); }
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .4; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+}
+
+/* ══════════════════════════════════════════════════════
+   SECCIONES DINÁMICAS — estilos base compartidos
+   Las plantillas pueden sobreescribir con sus propios estilos
+══════════════════════════════════════════════════════ */
+
+/* ── Contenedor genérico de sección dinámica ── */
+.dynamic-section {
+    width: 100%;
+    overflow: hidden;
+}
+
+/* ── TYPE: CARDS ── */
+.dynamic-section.type-cards {
+    padding: var(--section-gap) 0;
+    background: var(--bg2);
+}
+
+.dynamic-section.type-cards .ds-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.dynamic-section .ds-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.dynamic-section .ds-eyebrow {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 12px;
+}
+
+.dynamic-section .ds-title {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    line-height: 1.15;
+}
+
+.dynamic-section .ds-subtitle {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.dynamic-section .ds-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+}
+
+.dynamic-section .ds-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.dynamic-section .ds-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-glow), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.dynamic-section .ds-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+}
+
+.dynamic-section .ds-card:hover::before { opacity: 1; }
+
+.dynamic-section .ds-card-icon {
+    font-size: 36px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: block;
+}
+
+.dynamic-section .ds-card-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 10px;
+}
+
+.dynamic-section .ds-card-text {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+}
+
+/* ── TYPE: BANNER ── */
+.dynamic-section.type-banner {
+    position: relative;
+    padding: 72px 40px;
+    background: var(--bg3);
+    overflow: hidden;
+}
+
+.dynamic-section.type-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.dynamic-section.type-banner .ds-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.dynamic-section.type-banner .ds-banner-content { flex: 1; max-width: 640px; }
+
+.dynamic-section.type-banner .ds-title {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 16px;
+}
+
+.dynamic-section.type-banner .ds-subtitle {
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+.dynamic-section.type-banner .ds-banner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 14px 28px;
+    border-radius: var(--radius-sm);
+    border: none;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.2s;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+}
+
+.dynamic-section.type-banner .ds-banner-btn:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+}
+
+/* Imagen de fondo del banner */
+.dynamic-section.type-banner .ds-banner-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.12;
+    z-index: 0;
+}
+
+/* ── TYPE: SPLIT ── */
+.dynamic-section.type-split {
+    padding: var(--section-gap) 0;
+    background: var(--bg);
+}
+
+.dynamic-section.type-split .ds-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+}
+
+/* Invertir orden cuando se elige imagen a la izquierda */
+.dynamic-section.type-split.img-left .ds-inner {
+    direction: rtl;
+}
+.dynamic-section.type-split.img-left .ds-inner > * {
+    direction: ltr;
+}
+
+.dynamic-section.type-split .ds-split-content {}
+
+.dynamic-section.type-split .ds-title {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 3.5vw, 42px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 16px;
+}
+
+.dynamic-section.type-split .ds-subtitle {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.dynamic-section.type-split .ds-split-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+}
+
+.dynamic-section.type-split .ds-split-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.dynamic-section.type-split .ds-split-image {
+    border-radius: var(--radius);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    background: var(--card);
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+.dynamic-section.type-split .ds-split-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.dynamic-section.type-split .ds-split-image .ds-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 13px;
+}
+
+.dynamic-section.type-split .ds-split-image .ds-img-placeholder .material-symbols-outlined {
+    font-size: 48px;
+    opacity: 0.4;
+}
+
+/* ── Responsive dinámicas ── */
+@media (max-width: 768px) {
+    .dynamic-section.type-split .ds-inner {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        direction: ltr !important;
+    }
+    .dynamic-section.type-split .ds-inner > * { direction: ltr; }
+
+    .dynamic-section.type-banner .ds-inner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .dynamic-section .ds-inner { padding: 0 20px; }
+}

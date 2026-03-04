@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Cargar selector
+# Cargar selector de entorno
 load_dotenv(BASE_DIR / ".env")
 ENV = os.getenv("ENV", "local")
 
@@ -16,6 +16,28 @@ load_dotenv(env_file)
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-default")
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1").split(",")
+
+# ─────────────────────────────────────────────────────────
+# Configuración CSRF y seguridad para HTTPS (producción)
+# ─────────────────────────────────────────────────────────
+if not DEBUG:
+    # Solo en producción (HTTPS)
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    # Para permitir que JavaScript acceda a la cookie (necesario si usas fetch con X-CSRFToken)
+    CSRF_COOKIE_HTTPONLY = False
+    # Orígenes confiables para CSRF (dominios desde los que se aceptan peticiones POST)
+    CSRF_TRUSTED_ORIGINS = [
+        'https://puertaalcielo.grupokairosarg.com',
+    ]
+    # Si usas proxy inverso, necesario para que Django detecte HTTPS correctamente
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+else:
+    # Desarrollo local
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 
 # Aplicaciones instaladas
 INSTALLED_APPS = [
@@ -39,7 +61,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'iglesia_pc.urls'
-
 
 TEMPLATES = [
     {
