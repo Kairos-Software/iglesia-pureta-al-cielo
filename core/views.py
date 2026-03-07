@@ -10,7 +10,8 @@ from core.models import CanalTransmision
 
 
 CONFIG_PATH = os.path.join(settings.BASE_DIR, "site_data", "site_config.json")
-UPLOAD_DIR  = os.path.join(settings.BASE_DIR, "core", "static", "core", "img", "uploads")
+# Cambio: usar MEDIA_ROOT en lugar de static
+UPLOAD_DIR = os.path.join(settings.MEDIA_ROOT, "uploads")
 
 # Defaults base del sistema
 CONFIG_DEFAULT = {
@@ -323,8 +324,8 @@ def editor_upload_imagen(request):
         for chunk in image_file.chunks():
             f.write(chunk)
 
-    # Cache-busting con timestamp
-    url = f"/static/core/img/uploads/{filename}?v={int(time.time())}"
+    # Cambio: usar MEDIA_URL en lugar de /static/...
+    url = f"{settings.MEDIA_URL}uploads/{filename}?v={int(time.time())}"
     return JsonResponse({"ok": True, "url": url})
 
 
@@ -347,7 +348,7 @@ def editor_quitar_imagen(request):
     config[config_key] = ""
     guardar_config_archivo(config)
 
-    # Borrar archivo físico
+    # Borrar archivo físico (UPLOAD_DIR ya apunta a media/uploads)
     safe_key = "".join(c if c.isalnum() or c in "-_" else "_" for c in config_key)
     for ext in [".jpg", ".jpeg", ".png", ".svg", ".webp", ".gif"]:
         fpath = os.path.join(UPLOAD_DIR, f"{safe_key}{ext}")
@@ -386,7 +387,7 @@ def editor_resetear(request):
 
         guardar_config_archivo(config_reseteada)
 
-        # Limpiar imágenes subidas
+        # Limpiar imágenes subidas (UPLOAD_DIR ahora es media/uploads)
         if os.path.isdir(UPLOAD_DIR):
             for fname in os.listdir(UPLOAD_DIR):
                 try:
