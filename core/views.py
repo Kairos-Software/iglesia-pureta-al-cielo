@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import time
 from django.shortcuts import render, redirect
@@ -10,10 +11,117 @@ from core.models import CanalTransmision
 
 
 CONFIG_PATH = os.path.join(settings.BASE_DIR, "site_data", "site_config.json")
-# Cambio: usar MEDIA_ROOT en lugar de static
-UPLOAD_DIR = os.path.join(settings.MEDIA_ROOT, "uploads")
+UPLOAD_DIR  = os.path.join(settings.MEDIA_ROOT, "uploads")
 
-# Defaults base del sistema
+# ══════════════════════════════════════════════════════
+# PLANTILLAS — solo nombre y descripción.
+# Los colores y fuentes se leen AUTOMÁTICAMENTE del CSS
+# de cada template. Si cambiás el CSS, acá no tocás nada.
+# ══════════════════════════════════════════════════════
+PLANTILLAS_META = {
+    "kaircam": {
+        "nombre":      "Kaircam (Base)",
+        "descripcion": "Diseño de marca, broadcast profesional.",
+    },
+    "moderno": {
+        "nombre":      "Moderno",
+        "descripcion": "Oscuro con acentos dorados.",
+    },
+    "lateral": {
+        "nombre":      "Lateral",
+        "descripcion": "Nav fija a la izquierda.",
+    },
+    "magazine": {
+        "nombre":      "Magazine",
+        "descripcion": "Editorial, hero dividido, fondo crema.",
+    },
+}
+
+
+def _leer_colores_css(template_id: str) -> dict:
+    """
+    Lee automáticamente los colores y fuentes del CSS del template.
+    Extrae los fallbacks de las variables globales --bg, --accent, etc.
+
+    El CSS de cada template tiene este patrón en :root:
+        --x-bg:     var(--bg,           #070d16);
+        --x-accent: var(--accent,       #c9a84c);
+        --x-text:   var(--text,         #edf2f8);
+        --x-fd:     var(--font-display, 'Cormorant Garamond', ...);
+        --x-fb:     var(--font-body,    'DM Sans', ...);
+
+    Si el CSS no existe o no tiene el patrón, devuelve defaults seguros.
+    """
+    css_path = os.path.join(
+        settings.BASE_DIR,
+        "core", "static", "core", "css", "templates",
+        f"{template_id}.css"
+    )
+    if not os.path.exists(css_path):
+        return {
+            "color_bg_primary": "#111111",
+            "color_accent":     "#ffffff",
+            "color_text":       "#eeeeee",
+            "font_display":     "DM Sans",
+            "font_body":        "DM Sans",
+        }
+
+    with open(css_path, "r", encoding="utf-8") as f:
+        css = f.read()
+
+    root_match = re.search(r":root\s*\{([^}]+)\}", css, re.DOTALL)
+    if not root_match:
+        return {}
+
+    root_block = root_match.group(1)
+
+    def extract_fallback(global_var: str) -> str:
+        escaped = global_var.replace("-", r"\-")
+        pattern = rf"var\(\s*{escaped}\s*,\s*([^)]+?)\s*\)"
+        match   = re.search(pattern, root_block)
+        if not match:
+            return ""
+        value = match.group(1).strip().split(",")[0].strip().strip("'\"")
+        return value
+
+    return {
+        "color_bg_primary": extract_fallback("--bg"),
+        "color_accent":     extract_fallback("--accent"),
+        "color_text":       extract_fallback("--text"),
+        "font_display":     extract_fallback("--font-display"),
+        "font_body":        extract_fallback("--font-body"),
+    }
+
+
+def _style_defaults(template_id: str) -> dict:
+    """Colores y fuentes de un template, leídos de su CSS."""
+    return _leer_colores_css(template_id)
+
+
+def _template_defaults_json() -> str:
+    """
+    JSON que consume editor_page.js para aplicar colores
+    al seleccionar una plantilla. Se genera desde los CSS — automático.
+    """
+    return json.dumps(
+        {pid: _leer_colores_css(pid) for pid in PLANTILLAS_META},
+        ensure_ascii=False
+    )
+
+
+def _colores_para_selector(template_id: str) -> list:
+    """Los tres colores que muestra el selector visual del editor."""
+    d = _leer_colores_css(template_id)
+    return [
+        d.get("color_bg_primary", "#333"),
+        d.get("color_accent",     "#666"),
+        d.get("color_text",       "#ccc"),
+    ]
+
+
+# ══════════════════════════════════════════════════════
+# CONFIG DEFAULT DEL SISTEMA (solo contenido, no colores)
+# ══════════════════════════════════════════════════════
 CONFIG_DEFAULT = {
     "template":         "kaircam",
     "org_name":         "Mi Organización",
@@ -53,71 +161,32 @@ CONFIG_DEFAULT = {
     "dynamic_sections": [],
 }
 
-# Defaults de estilo por plantilla — se aplican al resetear
-PLANTILLA_DEFAULTS = {
-    "kaircam": {
-        "color_bg_primary": "#0d0e12",
-        "color_accent":     "#ff3e3e",
-        "color_text":       "#f1f5f9",
-        "font_display":     "Barlow Condensed",
-        "font_body":        "Barlow",
-    },
-    "moderno": {
-        "color_bg_primary": "#0d1b2a",
-        "color_accent":     "#c9a84c",
-        "color_text":       "#f0f4f8",
-        "font_display":     "Cormorant Garamond",
-        "font_body":        "DM Sans",
-    },
-    "lateral": {
-        "color_bg_primary": "#1a1a2e",
-        "color_accent":     "#e94560",
-        "color_text":       "#f5f5f5",
-        "font_display":     "Playfair Display",
-        "font_body":        "DM Sans",
-    },
-    "magazine": {
-        "color_bg_primary": "#faf7f2",
-        "color_accent":     "#4f46e5",
-        "color_text":       "#1e1b4b",
-        "font_display":     "Playfair Display",
-        "font_body":        "Lato",
-    },
-}
-
-PLANTILLAS_META = {
-    "kaircam": {
-        "nombre":      "Kaircam (Base)",
-        "descripcion": "Diseño de marca, broadcast profesional.",
-        "colores":     ["#0d0e12", "#ff3e3e", "#f1f5f9"],
-    },
-    "moderno": {
-        "nombre":      "Moderno",
-        "descripcion": "Oscuro con acentos dorados.",
-        "colores":     ["#0d1b2a", "#c9a84c", "#f0f4f8"],
-    },
-    "lateral": {
-        "nombre":      "Lateral",
-        "descripcion": "Nav fija a la izquierda.",
-        "colores":     ["#1a1a2e", "#e94560", "#f5f5f5"],
-    },
-    "magazine": {
-        "nombre":      "Magazine",
-        "descripcion": "Editorial, hero dividido, fondo crema.",
-        "colores":     ["#faf7f2", "#4f46e5", "#1e1b4b"],
-    },
-}
-
 
 def cargar_config():
     try:
         if os.path.exists(CONFIG_PATH):
             with open(CONFIG_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return {**CONFIG_DEFAULT, **data}
+                merged = {**CONFIG_DEFAULT, **data}
     except (json.JSONDecodeError, OSError):
-        pass
-    return dict(CONFIG_DEFAULT)
+        merged = dict(CONFIG_DEFAULT)
+
+    template_actual   = merged.get("template", "kaircam")
+    template_anterior = merged.get("_colors_from_template", "")
+    color_keys = ["color_bg_primary", "color_accent", "color_text", "font_display", "font_body"]
+
+    # Actualizar colores si:
+    # 1. Algún color esta vacio (primera vez), o
+    # 2. El template cambio desde el CSS sin pasar por el editor
+    if any(not merged.get(k) for k in color_keys) or template_actual != template_anterior:
+        css_defaults = _leer_colores_css(template_actual)
+        for k in color_keys:
+            merged[k] = css_defaults.get(k, merged.get(k, ""))
+        merged["_colors_from_template"] = template_actual
+        # Persistir para no re-leer el CSS en cada request
+        guardar_config_archivo(merged)
+
+    return merged
 
 
 def guardar_config_archivo(config: dict):
@@ -143,7 +212,7 @@ def get_stream_context():
 
 def listar_plantillas():
     layouts_dir = os.path.join(settings.BASE_DIR, "core", "templates", "core", "layouts")
-    plantillas = []
+    plantillas  = []
     if os.path.isdir(layouts_dir):
         for fname in sorted(os.listdir(layouts_dir)):
             if fname.endswith(".html"):
@@ -151,17 +220,24 @@ def listar_plantillas():
                 meta = PLANTILLAS_META.get(pid, {
                     "nombre":      pid.capitalize(),
                     "descripcion": f"Plantilla {pid.capitalize()}",
-                    "colores":     ["#333", "#666", "#ccc"],
                 })
-                plantillas.append({"id": pid, **meta})
+                plantillas.append({
+                    "id":      pid,
+                    "colores": _colores_para_selector(pid),
+                    **meta,
+                })
     else:
         for pid, meta in PLANTILLAS_META.items():
-            plantillas.append({"id": pid, **meta})
+            plantillas.append({
+                "id":      pid,
+                "colores": _colores_para_selector(pid),
+                **meta,
+            })
     return plantillas
 
 
 # ══════════════════════════════════════════════════════
-# VISTAS PRINCIPALES
+# VISTAS
 # ══════════════════════════════════════════════════════
 
 def home(request):
@@ -176,10 +252,6 @@ def home(request):
     response["X-Frame-Options"] = "SAMEORIGIN"
     return response
 
-
-# ══════════════════════════════════════════════════════
-# CHAT
-# ══════════════════════════════════════════════════════
 
 mensajes_chat = []
 
@@ -207,10 +279,6 @@ def obtener_mensajes(request):
         return JsonResponse({"activo": False, "mensajes": []})
     return JsonResponse({"activo": True, "mensajes": mensajes_chat})
 
-
-# ══════════════════════════════════════════════════════
-# EDITOR AUTH
-# ══════════════════════════════════════════════════════
 
 def editor_login(request):
     site_config = cargar_config()
@@ -248,15 +316,12 @@ def editor_page(request):
         return redirect("editor_login")
     site_config = cargar_config()
     return render(request, "core/editor_page.html", {
-        "site_config":      site_config,
-        "site_config_json": json.dumps(site_config, ensure_ascii=False),
-        "plantillas":       listar_plantillas(),
+        "site_config":            site_config,
+        "site_config_json":       json.dumps(site_config, ensure_ascii=False),
+        "plantillas":             listar_plantillas(),
+        "template_defaults_json": _template_defaults_json(),
     })
 
-
-# ══════════════════════════════════════════════════════
-# EDITOR — GUARDAR
-# ══════════════════════════════════════════════════════
 
 @csrf_exempt
 def editor_guardar(request):
@@ -276,12 +341,6 @@ def editor_guardar(request):
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
 
 
-# ══════════════════════════════════════════════════════
-# EDITOR — UPLOAD IMAGEN
-# Nombre de archivo FIJO por clave → siempre reemplaza la anterior.
-# No depende del nombre original del archivo subido.
-# ══════════════════════════════════════════════════════
-
 @csrf_exempt
 def editor_upload_imagen(request):
     if not es_editor_logueado(request):
@@ -297,20 +356,17 @@ def editor_upload_imagen(request):
     if image_file.size > 10 * 1024 * 1024:
         return JsonResponse({"ok": False, "error": "Imagen demasiado grande (máx. 10MB)"})
 
-    # Detectar extensión del archivo original
     _, ext = os.path.splitext(image_file.name)
     ext = ext.lower()
     if ext not in [".jpg", ".jpeg", ".png", ".svg", ".webp", ".gif"]:
         ext = ".jpg"
 
-    # Nombre fijo basado en la clave del config — ignora el nombre original
     safe_key  = "".join(c if c.isalnum() or c in "-_" else "_" for c in config_key)
     filename  = f"{safe_key}{ext}"
     save_path = os.path.join(UPLOAD_DIR, filename)
 
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    # Eliminar versiones anteriores con distinta extensión
     for old_ext in [".jpg", ".jpeg", ".png", ".svg", ".webp", ".gif"]:
         old_path = os.path.join(UPLOAD_DIR, f"{safe_key}{old_ext}")
         if os.path.exists(old_path) and old_path != save_path:
@@ -319,19 +375,13 @@ def editor_upload_imagen(request):
             except OSError:
                 pass
 
-    # Guardar
     with open(save_path, "wb") as f:
         for chunk in image_file.chunks():
             f.write(chunk)
 
-    # Cambio: usar MEDIA_URL en lugar de /static/...
     url = f"{settings.MEDIA_URL}uploads/{filename}?v={int(time.time())}"
     return JsonResponse({"ok": True, "url": url})
 
-
-# ══════════════════════════════════════════════════════
-# EDITOR — QUITAR IMAGEN
-# ══════════════════════════════════════════════════════
 
 @csrf_exempt
 def editor_quitar_imagen(request):
@@ -348,7 +398,6 @@ def editor_quitar_imagen(request):
     config[config_key] = ""
     guardar_config_archivo(config)
 
-    # Borrar archivo físico (UPLOAD_DIR ya apunta a media/uploads)
     safe_key = "".join(c if c.isalnum() or c in "-_" else "_" for c in config_key)
     for ext in [".jpg", ".jpeg", ".png", ".svg", ".webp", ".gif"]:
         fpath = os.path.join(UPLOAD_DIR, f"{safe_key}{ext}")
@@ -361,12 +410,6 @@ def editor_quitar_imagen(request):
     return JsonResponse({"ok": True})
 
 
-# ══════════════════════════════════════════════════════
-# EDITOR — RESETEAR
-# Restaura los defaults del sistema + los de la plantilla activa.
-# NO borra la plantilla seleccionada, solo los estilos y contenido.
-# ══════════════════════════════════════════════════════
-
 @csrf_exempt
 def editor_resetear(request):
     if not es_editor_logueado(request):
@@ -378,16 +421,13 @@ def editor_resetear(request):
         config_actual   = cargar_config()
         template_activo = config_actual.get("template", "kaircam")
 
-        # Base defaults + defaults de estilo de la plantilla activa
         config_reseteada = dict(CONFIG_DEFAULT)
         config_reseteada["template"] = template_activo
-        config_reseteada.update(
-            PLANTILLA_DEFAULTS.get(template_activo, PLANTILLA_DEFAULTS["kaircam"])
-        )
+        # Colores leídos del CSS — automático
+        config_reseteada.update(_style_defaults(template_activo))
 
         guardar_config_archivo(config_reseteada)
 
-        # Limpiar imágenes subidas (UPLOAD_DIR ahora es media/uploads)
         if os.path.isdir(UPLOAD_DIR):
             for fname in os.listdir(UPLOAD_DIR):
                 try:

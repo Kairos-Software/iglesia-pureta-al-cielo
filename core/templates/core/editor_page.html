@@ -46,6 +46,21 @@
             <button class="ep-tab" data-tab="style" data-tooltip="Estilo">
                 <span class="material-symbols-outlined">format_paint</span>
             </button>
+            <button class="ep-tab" data-tab="events" data-tooltip="Eventos">
+                <span class="material-symbols-outlined">event</span>
+            </button>
+            <button class="ep-tab" data-tab="ads" data-tooltip="Anuncios">
+                <span class="material-symbols-outlined">campaign</span>
+            </button>
+            <button class="ep-tab" data-tab="seo" data-tooltip="SEO">
+                <span class="material-symbols-outlined">travel_explore</span>
+            </button>
+            <button class="ep-tab" data-tab="footer" data-tooltip="Footer">
+                <span class="material-symbols-outlined">vertical_align_bottom</span>
+            </button>
+            <button class="ep-tab" data-tab="advanced" data-tooltip="Avanzado">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
         </nav>
     </div>
 
@@ -361,6 +376,337 @@
             </div>
         </div>
 
+                <!-- TAB: EVENTOS -->
+        <div class="ep-tab-content" data-tab-content="events">
+            <div class="ep-section-title">Eventos</div>
+            <p class="ep-section-desc">Anunciá eventos con fecha, lugar y botón de inscripción</p>
+
+            <div class="ep-add-section-box" id="epAddEventBox">
+                <div class="ep-subsection" style="margin-top:0">Nuevo evento</div>
+                <div class="ep-field">
+                    <label>Nombre del evento</label>
+                    <input type="text" class="ep-input" id="epEvtName" placeholder="Ej: Concierto de Navidad">
+                </div>
+                <div class="ep-field">
+                    <label>Descripción corta</label>
+                    <textarea class="ep-input ep-textarea" id="epEvtDesc" style="min-height:56px" placeholder="Breve descripción..."></textarea>
+                </div>
+                <div class="ep-field-row">
+                    <div class="ep-field">
+                        <label>Fecha</label>
+                        <input type="date" class="ep-input" id="epEvtDate">
+                    </div>
+                    <div class="ep-field">
+                        <label>Hora</label>
+                        <input type="time" class="ep-input" id="epEvtTime">
+                    </div>
+                </div>
+                <div class="ep-field">
+                    <label>Lugar / Dirección</label>
+                    <input type="text" class="ep-input" id="epEvtPlace" placeholder="Ej: Av. Siempreviva 742">
+                </div>
+                <div class="ep-field ep-toggle-field">
+                    <label class="ep-toggle-label">
+                        <span>Tiene botón de inscripción</span>
+                        <label class="ep-switch">
+                            <input type="checkbox" id="epEvtHasBtn">
+                            <span class="ep-switch-slider"></span>
+                        </label>
+                    </label>
+                </div>
+                <div class="ep-evt-btn-fields" style="display:none">
+                    <div class="ep-field-row">
+                        <div class="ep-field">
+                            <label>Texto del botón</label>
+                            <input type="text" class="ep-input" id="epEvtBtnText" placeholder="Inscribirse">
+                        </div>
+                        <div class="ep-field">
+                            <label>URL del botón</label>
+                            <input type="url" class="ep-input" id="epEvtBtnUrl" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+                <div class="ep-field">
+                    <label>Imagen del evento (opcional)</label>
+                    <div class="ep-img-preview-wrap" id="epEvtImgPreview" style="height:72px">
+                        <div class="ep-img-empty">
+                            <span class="material-symbols-outlined">image</span>
+                            <span>Sin imagen</span>
+                        </div>
+                    </div>
+                    <input type="file" id="epEvtImgUpload" accept="image/*" style="display:none">
+                    <button class="ep-btn-upload" id="epEvtImgBtn">
+                        <span class="material-symbols-outlined">upload</span> Subir imagen
+                    </button>
+                </div>
+                <button class="ep-btn-primary ep-full-width" id="epAddEventBtn" style="margin-top:12px">
+                    <span class="material-symbols-outlined">add</span>
+                    Agregar Evento
+                </button>
+            </div>
+
+            <div id="epEventsList" style="margin-top:16px"></div>
+        </div>
+
+        <!-- TAB: ANUNCIOS / SPONSORS -->
+        <div class="ep-tab-content" data-tab-content="ads">
+            <div class="ep-section-title">Anuncios & Sponsors</div>
+            <p class="ep-section-desc">Agregá banners, logos de sponsors o avisos internos</p>
+
+            <div class="ep-add-section-box">
+                <div class="ep-subsection" style="margin-top:0">Tipo de anuncio</div>
+                <div class="ep-type-grid" style="grid-template-columns: repeat(3,1fr)">
+                    <button class="ep-type-btn active" data-adtype="banner">
+                        <span class="material-symbols-outlined">panorama</span>
+                        <span>Banner</span>
+                    </button>
+                    <button class="ep-type-btn" data-adtype="sponsor">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                        <span>Sponsor</span>
+                    </button>
+                    <button class="ep-type-btn" data-adtype="notice">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span>Aviso</span>
+                    </button>
+                </div>
+
+                <div class="ep-ad-fields" data-adtype-fields="banner">
+                    <div class="ep-field" style="margin-top:12px">
+                        <label>Imagen del banner</label>
+                        <div class="ep-img-preview-wrap" id="epAdBannerPreview" style="height:72px">
+                            <div class="ep-img-empty"><span class="material-symbols-outlined">image</span><span>Sin imagen</span></div>
+                        </div>
+                        <input type="file" id="epAdBannerUpload" accept="image/*" style="display:none">
+                        <button class="ep-btn-upload" data-upload-for="epAdBannerUpload">
+                            <span class="material-symbols-outlined">upload</span> Subir banner
+                        </button>
+                    </div>
+                    <div class="ep-field">
+                        <label>URL de destino</label>
+                        <input type="url" class="ep-input" id="epAdBannerUrl" placeholder="https://...">
+                    </div>
+                    <div class="ep-field">
+                        <label>Texto alternativo</label>
+                        <input type="text" class="ep-input" id="epAdBannerAlt" placeholder="Descripción del banner">
+                    </div>
+                </div>
+
+                <div class="ep-ad-fields" data-adtype-fields="sponsor" style="display:none">
+                    <div class="ep-field" style="margin-top:12px">
+                        <label>Logo del sponsor</label>
+                        <div class="ep-img-preview-wrap ep-logo-wrap" id="epAdSponsorLogoPreview">
+                            <div class="ep-img-empty"><span class="material-symbols-outlined">image</span><span>Sin logo</span></div>
+                        </div>
+                        <input type="file" id="epAdSponsorLogoUpload" accept="image/*" style="display:none">
+                        <button class="ep-btn-upload" data-upload-for="epAdSponsorLogoUpload">
+                            <span class="material-symbols-outlined">upload</span> Subir logo
+                        </button>
+                    </div>
+                    <div class="ep-field">
+                        <label>Nombre del sponsor</label>
+                        <input type="text" class="ep-input" id="epAdSponsorName" placeholder="Empresa XYZ">
+                    </div>
+                    <div class="ep-field">
+                        <label>URL del sponsor</label>
+                        <input type="url" class="ep-input" id="epAdSponsorUrl" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="ep-ad-fields" data-adtype-fields="notice" style="display:none">
+                    <div class="ep-field" style="margin-top:12px">
+                        <label>Título del aviso</label>
+                        <input type="text" class="ep-input" id="epAdNoticeTitle" placeholder="¡Atención!">
+                    </div>
+                    <div class="ep-field">
+                        <label>Mensaje</label>
+                        <textarea class="ep-input ep-textarea" id="epAdNoticeText" style="min-height:56px" placeholder="Contenido del aviso..."></textarea>
+                    </div>
+                    <div class="ep-field">
+                        <label>Color de fondo</label>
+                        <div class="ep-color-row">
+                            <input type="color" class="ep-color-input" id="epAdNoticeBgColor" value="#c9a84c">
+                            <input type="text" class="ep-input ep-color-text" id="epAdNoticeBgColorText" value="#c9a84c">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="ep-btn-primary ep-full-width" id="epAddAdBtn" style="margin-top:12px">
+                    <span class="material-symbols-outlined">add</span>
+                    Agregar Anuncio
+                </button>
+            </div>
+
+            <div id="epAdsList" style="margin-top:16px"></div>
+        </div>
+
+        <!-- TAB: SEO -->
+        <div class="ep-tab-content" data-tab-content="seo">
+            <div class="ep-section-title">SEO</div>
+            <p class="ep-section-desc">Mejorá cómo aparece tu sitio en buscadores y redes sociales</p>
+
+            <div class="ep-subsection" style="margin-top:0">Buscadores</div>
+            <div class="ep-field">
+                <label>Título de página (title tag)</label>
+                <input type="text" class="ep-input" data-key="seo_title" value="{{ site_config.seo_title|default:'' }}" placeholder="Mi Organización — Inicio">
+                <p class="ep-hint">Ideal: 50–60 caracteres</p>
+            </div>
+            <div class="ep-field">
+                <label>Descripción meta</label>
+                <textarea class="ep-input ep-textarea" data-key="seo_description" style="min-height:72px" placeholder="Breve descripción de tu sitio para Google...">{{ site_config.seo_description|default:'' }}</textarea>
+                <p class="ep-hint">Ideal: 150–160 caracteres</p>
+            </div>
+            <div class="ep-field">
+                <label>Keywords (separadas por coma)</label>
+                <input type="text" class="ep-input" data-key="seo_keywords" value="{{ site_config.seo_keywords|default:'' }}" placeholder="iglesia, música, comunidad...">
+            </div>
+
+            <div class="ep-subsection">Open Graph (redes sociales)</div>
+            <div class="ep-field">
+                <label>Título OG</label>
+                <input type="text" class="ep-input" data-key="og_title" value="{{ site_config.og_title|default:'' }}" placeholder="Igual que el título o personalizado">
+            </div>
+            <div class="ep-field">
+                <label>Descripción OG</label>
+                <textarea class="ep-input ep-textarea" data-key="og_description" style="min-height:56px" placeholder="Descripción al compartir en redes...">{{ site_config.og_description|default:'' }}</textarea>
+            </div>
+            <div class="ep-field">
+                <label>Imagen OG (para compartir)</label>
+                <div class="ep-img-preview-wrap" id="epOgImgPreview" style="height:80px">
+                    <div class="ep-img-empty"><span class="material-symbols-outlined">image</span><span>Sin imagen</span></div>
+                </div>
+                <input type="file" id="epOgImgUpload" accept="image/*" style="display:none">
+                <button class="ep-btn-upload" onclick="document.getElementById('epOgImgUpload').click()">
+                    <span class="material-symbols-outlined">upload</span> Subir imagen OG
+                </button>
+                <p class="ep-hint">Recomendado: 1200×630px</p>
+            </div>
+
+            <!-- Indicador SEO en vivo -->
+            <div class="ep-seo-preview" id="epSeoPreviewBox">
+                <div class="ep-seo-preview-label">Vista previa en Google</div>
+                <div class="ep-seo-preview-inner">
+                    <div class="ep-seo-url">tudominio.com</div>
+                    <div class="ep-seo-ptitle" id="epSeoPreviewTitle">Título de página</div>
+                    <div class="ep-seo-pdesc" id="epSeoPreviewDesc">Descripción meta de tu sitio...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: FOOTER -->
+        <div class="ep-tab-content" data-tab-content="footer">
+            <div class="ep-section-title">Footer</div>
+            <p class="ep-section-desc">Personalizá el pie de página de tu sitio</p>
+
+            <div class="ep-subsection" style="margin-top:0">Contenido</div>
+            <div class="ep-field">
+                <label>Texto de copyright</label>
+                <input type="text" class="ep-input" data-key="footer_copyright" value="{{ site_config.footer_copyright|default:'' }}" placeholder="© 2025 Mi Organización. Todos los derechos reservados.">
+            </div>
+            <div class="ep-field">
+                <label>Tagline / lema del footer</label>
+                <input type="text" class="ep-input" data-key="footer_tagline" value="{{ site_config.footer_tagline|default:'' }}" placeholder="Transformando el futuro juntos">
+            </div>
+            <div class="ep-field">
+                <label>Email de contacto visible</label>
+                <input type="email" class="ep-input" data-key="footer_email" value="{{ site_config.footer_email|default:'' }}" placeholder="hola@tuorg.com">
+            </div>
+
+            <div class="ep-subsection">Links rápidos del footer</div>
+            <p class="ep-section-desc" style="margin-bottom:10px">Podés agregar hasta 6 links al footer</p>
+            <div id="epFooterLinksList"></div>
+            <button class="ep-btn-secondary ep-full-width" id="epAddFooterLinkBtn" style="margin-top:4px">
+                <span class="material-symbols-outlined">add</span> Agregar link
+            </button>
+
+            <div class="ep-subsection">Apariencia</div>
+            <div class="ep-field">
+                <label>Mostrar redes sociales en footer</label>
+                <label class="ep-toggle-label">
+                    <span>Activar íconos de redes</span>
+                    <label class="ep-switch">
+                        <input type="checkbox" data-key="footer_show_social" {% if site_config.footer_show_social %}checked{% endif %}>
+                        <span class="ep-switch-slider"></span>
+                    </label>
+                </label>
+            </div>
+            <div class="ep-field">
+                <label>Mostrar logo en footer</label>
+                <label class="ep-toggle-label">
+                    <span>Mostrar logo</span>
+                    <label class="ep-switch">
+                        <input type="checkbox" data-key="footer_show_logo" {% if site_config.footer_show_logo %}checked{% endif %}>
+                        <span class="ep-switch-slider"></span>
+                    </label>
+                </label>
+            </div>
+        </div>
+
+        <!-- TAB: AVANZADO -->
+        <div class="ep-tab-content" data-tab-content="advanced">
+            <div class="ep-section-title">Avanzado</div>
+
+            <!-- Historial / Deshacer -->
+            <div class="ep-subsection" style="margin-top:0">Historial de cambios</div>
+            <p class="ep-section-desc">Se guardan los últimos 5 estados automáticamente</p>
+            <div id="epHistoryList" class="ep-history-list"></div>
+            <div class="ep-history-empty" id="epHistoryEmpty" style="font-size:12px;color:var(--ep-text-muted);text-align:center;padding:8px 0">Sin historial aún</div>
+
+            <!-- Exportar / Importar JSON -->
+            <div class="ep-subsection">Exportar / Importar configuración</div>
+            <p class="ep-section-desc">Guardá tu configuración actual o cargá una guardada previamente</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+                <button class="ep-btn-secondary ep-full-width" id="epExportJsonBtn">
+                    <span class="material-symbols-outlined">download</span>
+                    Exportar configuración (.json)
+                </button>
+                <button class="ep-btn-secondary ep-full-width" id="epImportJsonBtn">
+                    <span class="material-symbols-outlined">upload</span>
+                    Importar configuración (.json)
+                </button>
+                <input type="file" id="epImportJsonInput" accept=".json" style="display:none">
+            </div>
+
+            <div class="ep-subsection">Presets guardados</div>
+            <p class="ep-section-desc">Guardá la configuración actual como un preset propio</p>
+            <div class="ep-field">
+                <label>Nombre del preset</label>
+                <div style="display:flex;gap:8px">
+                    <input type="text" class="ep-input" id="epPresetName" placeholder="Ej: Navidad 2025" style="flex:1">
+                    <button class="ep-btn-primary" id="epSavePresetBtn" style="white-space:nowrap;padding:8px 12px">
+                        <span class="material-symbols-outlined">save</span>
+                    </button>
+                </div>
+            </div>
+            <div id="epPresetsList" style="margin-top:4px"></div>
+
+            <!-- Modo mantenimiento -->
+            <div class="ep-subsection">Modo mantenimiento</div>
+            <div class="ep-maintenance-box" id="epMaintenanceBox">
+                <div class="ep-field ep-toggle-field">
+                    <label class="ep-toggle-label">
+                        <span class="ep-toggle-title">Activar modo mantenimiento</span>
+                        <label class="ep-switch">
+                            <input type="checkbox" data-key="maintenance_mode" id="epMaintenanceToggle" {% if site_config.maintenance_mode %}checked{% endif %}>
+                            <span class="ep-switch-slider"></span>
+                        </label>
+                    </label>
+                </div>
+                <div class="ep-maintenance-warning" id="epMaintenanceWarning" {% if not site_config.maintenance_mode %}style="display:none"{% endif %}>
+                    <span class="material-symbols-outlined">warning</span>
+                    <span>El sitio mostrará una página de "en construcción" a los visitantes</span>
+                </div>
+                <div class="ep-field" style="margin-top:10px">
+                    <label>Mensaje de mantenimiento</label>
+                    <textarea class="ep-input ep-textarea" data-key="maintenance_message" style="min-height:72px" placeholder="Estamos trabajando en algo increíble. Volvé pronto!">{{ site_config.maintenance_message|default:'' }}</textarea>
+                </div>
+                <div class="ep-field">
+                    <label>Fecha estimada de vuelta</label>
+                    <input type="date" class="ep-input" data-key="maintenance_date" value="{{ site_config.maintenance_date|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+
     </aside>
 
     <!-- Preview iframe -->
@@ -395,6 +741,7 @@
 </div>
 
 <script id="epConfigData" type="application/json">{{ site_config_json|safe }}</script>
+<script id="epTemplateDefaults" type="application/json">{{ template_defaults_json|safe }}</script>
 <script src="{% static 'core/js/editor_page.js' %}"></script>
 </body>
 </html>

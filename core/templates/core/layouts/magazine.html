@@ -1,236 +1,315 @@
 {% load static %}
-<!-- ═══════════════════════════════════════════
-     LAYOUT: MAGAZINE
-     Header centrado minimalista, hero dividido 50/50,
-     tipografía editorial, fondo claro con acento vivo
-═══════════════════════════════════════════ -->
+<link rel="stylesheet" href="{% static 'core/css/templates/magazine.css' %}">
 
-<!-- ── HEADER ── -->
-<header class="mag-header" id="siteHeader">
-    <div class="mag-header-top">
-        <p class="mag-header-date">{{ site_config.org_slogan|default:"Transformando el futuro juntos" }}</p>
-        <div class="mag-header-actions">
-            <a href="https://kaircampanel.grupokairosarg.com" target="_blank" rel="noopener" class="mag-action-link">
-                <span class="material-symbols-outlined">cast</span> Panel
-            </a>
-            {% if editor_logged_in %}
-            <a href="{% url 'editor_page' %}" class="mag-action-link">
-                <span class="material-symbols-outlined">edit</span> Editar
-            </a>
-            <a href="{% url 'editor_logout' %}" class="mag-action-link mag-action-danger">
-                <span class="material-symbols-outlined">logout</span>
-            </a>
-            {% else %}
-            <a href="{% url 'editor_login' %}" class="mag-action-link">
-                <span class="material-symbols-outlined">lock</span> Editar
-            </a>
-            {% endif %}
-        </div>
-    </div>
-    <div class="mag-header-main">
-        <a class="mag-brand" href="#inicio">
-            <img id="headerLogo"
-                 src="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/logo.png' %}{% endif %}"
-                 alt="Logo" class="mag-logo">
-            <span class="mag-brand-name" id="headerOrgName">{{ site_config.org_name|default:"Mi Organización" }}</span>
+{% for ad in site_config.ads %}{% if ad.type == "notice" %}
+<div class="mg-notice" style="background:{{ ad.bg_color|default:'var(--mg-accent)' }}">
+  <div class="mg-notice-inner">
+    <span class="material-symbols-outlined">campaign</span>
+    <span class="mg-notice-text">{{ ad.title }}{% if ad.text %} — {{ ad.text }}{% endif %}</span>
+    <button class="mg-notice-close" onclick="this.closest('.mg-notice').remove()"><span class="material-symbols-outlined">close</span></button>
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+{# ══ MASTHEAD — header tipo periódico ══ #}
+<header class="mg-masthead" id="mgMasthead">
+  <div class="mg-masthead-top">
+    <div class="mg-masthead-top-inner">
+      <span class="mg-masthead-date" id="mgDate"></span>
+      <div class="mg-masthead-actions">
+        <a href="https://kaircampanel.grupokairosarg.com" target="_blank" class="mg-btn mg-btn--ghost">
+          <span class="material-symbols-outlined">cast</span> Panel
         </a>
+        {% if editor_logged_in %}
+        <a href="{% url 'editor_page' %}" class="mg-btn mg-btn--solid"><span class="material-symbols-outlined">edit</span> Editar</a>
+        <a href="{% url 'editor_logout' %}" class="mg-btn mg-btn--ghost"><span class="material-symbols-outlined">logout</span></a>
+        {% else %}
+        <a href="{% url 'editor_login' %}" class="mg-btn mg-btn--ghost"><span class="material-symbols-outlined">lock</span></a>
+        {% endif %}
+        <button class="mg-burger" id="mgBurger"><span></span><span></span><span></span></button>
+      </div>
     </div>
-    <nav class="mag-nav">
-        <a href="#inicio">Inicio</a>
-        <a href="#envivo">En Vivo</a>
-        <a href="#nosotros">Nosotros</a>
-        {% for sec in site_config.dynamic_sections %}
-        <a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
-        {% endfor %}
-        <a href="#contacto">Contacto</a>
-    </nav>
+  </div>
+
+  <div class="mg-masthead-title">
+    {% if site_config.logo_url %}
+    <img src="{{ site_config.logo_url }}" alt="Logo" class="mg-masthead-logo" id="mgLogo">
+    {% endif %}
+    <a href="#inicio" class="mg-pub-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</a>
+    <span class="mg-pub-slogan footer-slogan">{{ site_config.org_slogan|default:"" }}</span>
+  </div>
+
+  <nav class="mg-nav" id="mgNav">
+    <div class="mg-nav-inner">
+      <a href="#inicio" class="mg-nav-a">Inicio</a>
+      <a href="#envivo" class="mg-nav-a">En Vivo</a>
+      <a href="#nosotros" class="mg-nav-a">Nosotros</a>
+      {% for sec in site_config.dynamic_sections %}
+      <a href="#sec-{{ sec.id }}" class="mg-nav-a" data-dyn="{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
+      {% endfor %}
+      {% if site_config.events %}<a href="#eventos" class="mg-nav-a">Eventos</a>{% endif %}
+      <a href="#contacto" class="mg-nav-a">Contacto</a>
+    </div>
+  </nav>
+
+  <div class="mg-mobile-menu" id="mgMobileMenu">
+    <a href="#inicio">Inicio</a>
+    <a href="#envivo">En Vivo</a>
+    <a href="#nosotros">Nosotros</a>
+    {% for sec in site_config.dynamic_sections %}
+    <a href="#sec-{{ sec.id }}" data-dyn="{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
+    {% endfor %}
+    {% if site_config.events %}<a href="#eventos">Eventos</a>{% endif %}
+    <a href="#contacto">Contacto</a>
+  </div>
 </header>
 
-<!-- ── HERO SPLIT ── -->
-<section class="mag-hero" id="inicio">
-    <!-- Mitad izquierda: texto -->
-    <div class="mag-hero-left">
-        <p class="mag-eyebrow" data-editable="hero_eyebrow">{{ site_config.hero_eyebrow|default:"Bienvenidos" }}</p>
-        <h1 class="mag-hero-title" data-editable="hero_title">{{ site_config.hero_title|default:"Tu Organización" }}</h1>
-        <p class="mag-hero-sub" data-editable="hero_subtitle">{{ site_config.hero_subtitle|default:"Conectamos personas, ideas y propósitos para crear un impacto positivo." }}</p>
-        <a href="#envivo" class="mag-hero-btn" data-editable="hero_btn_text">
-            {{ site_config.hero_btn_text|default:"Conocer Más" }}
+{# ══ HERO ══ #}
+<section class="mg-hero" id="inicio">
+  <div class="mg-wrap">
+    <div class="mg-hero-grid">
+      {# Columna izquierda: stats #}
+      <div class="mg-hero-left">
+        <div class="mg-hero-stat-stack">
+          <div class="mg-hero-stat-item">
+            <strong data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</strong>
+            <span data-editable="stat1_label">{{ site_config.stat1_label|default:"Años de experiencia" }}</span>
+          </div>
+          <div class="mg-hero-stat-item">
+            <strong data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</strong>
+            <span data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros activos" }}</span>
+          </div>
+          <div class="mg-hero-stat-item">
+            <strong data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</strong>
+            <span data-editable="stat3_label">{{ site_config.stat3_label|default:"Países alcanzados" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mg-hero-col-div"></div>
+
+      {# Columna central: titular #}
+      <div class="mg-hero-center">
+        <p class="mg-hero-eyebrow" data-editable="hero_eyebrow">{{ site_config.hero_eyebrow|default:"Bienvenidos" }}</p>
+        <h1 class="mg-hero-headline" data-editable="hero_title">{{ site_config.hero_title|default:"Tu Organización" }}</h1>
+        <p class="mg-hero-dek" data-editable="hero_subtitle">{{ site_config.hero_subtitle|default:"Conectamos personas, ideas y propósitos para crear un impacto positivo en la comunidad." }}</p>
+        <div class="mg-hero-img-wrap">
+          {% if site_config.hero_bg_url %}
+          <img src="{{ site_config.hero_bg_url }}" alt="" class="mg-hero-img hero-bg-img">
+          {% else %}
+          <div class="mg-hero-img-placeholder">
+            <span class="material-symbols-outlined">image</span>
+            <span style="font-family:var(--mg-fd);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase">Sin imagen</span>
+          </div>
+          {% endif %}
+        </div>
+        <a href="#envivo" class="mg-hero-cta">
+          <span data-editable="hero_btn_text">{{ site_config.hero_btn_text|default:"Ver transmisión" }}</span>
+          <span class="material-symbols-outlined">arrow_forward</span>
         </a>
+      </div>
+
+      <div class="mg-hero-col-div"></div>
+
+      {# Columna derecha: slogan / editorial #}
+      <div class="mg-hero-right">
+        <div class="mg-hero-right-text">
+          <span class="mg-hero-right-label">Editorial</span>
+          <p class="mg-hero-right-body" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia y la innovación." }}</p>
+        </div>
+        <a href="#nosotros" class="mg-btn mg-btn--solid" style="align-self:flex-start;margin-top:2rem">Leer más</a>
+      </div>
     </div>
-    <!-- Mitad derecha: imagen o degradado -->
-    <div class="mag-hero-right">
-        {% if site_config.hero_bg_url %}
-        <img src="{{ site_config.hero_bg_url }}" alt="Hero" class="mag-hero-img">
+  </div>
+</section>
+
+{# Secciones dinámicas before_player #}
+{% for section in site_config.dynamic_sections %}
+{% if section.position == "before_player" %}
+{% include "core/includes/dynamic_section.html" with sec=section %}
+{% endif %}{% endfor %}
+
+{# ══ LIVE ══ #}
+<section class="mg-live" id="envivo">
+  <div class="mg-wrap">
+    <div class="mg-live-header">
+      <div class="mg-live-header-left">
+        <span class="mg-section-label">Transmisión</span>
+        <h2 class="mg-section-title" data-editable="live_title">{{ site_config.live_title|default:"En Vivo" }}</h2>
+        <p class="mg-section-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Unite a nuestra comunidad en tiempo real" }}</p>
+      </div>
+      <div class="mg-live-status {% if on_air %}mg-live-status--on{% endif %}">
+        <span class="mg-live-dot {% if on_air %}mg-live-dot--on{% endif %}"></span>
+        {% if on_air %}En Vivo{% else %}Offline{% endif %}
+      </div>
+    </div>
+    <div class="mg-stream-grid" id="streamContainer"
+         data-on-air="{{ on_air|yesno:'true,false' }}"
+         data-hls-url="{{ hls_url }}">
+      <div class="mg-player-wrap">{% include "core/includes/player.html" %}</div>
+      <div class="mg-chat-wrap">{% include "core/includes/chat.html" %}</div>
+    </div>
+  </div>
+</section>
+
+{% for section in site_config.dynamic_sections %}
+{% if section.position == "after_player" %}
+{% include "core/includes/dynamic_section.html" with sec=section %}
+{% endif %}{% endfor %}
+
+{# ══ ABOUT ══ #}
+<section class="mg-about" id="nosotros">
+  <div class="mg-wrap">
+    <div class="mg-about-grid">
+      <div class="mg-about-img-col about-image-wrap">
+        {% if site_config.about_img_url %}
+        <img src="{{ site_config.about_img_url }}" alt="Nosotros" class="mg-about-img about-img">
         {% else %}
-        <div class="mag-hero-placeholder">
-            <div class="mag-hero-shape mag-hero-shape-1"></div>
-            <div class="mag-hero-shape mag-hero-shape-2"></div>
-            <div class="mag-hero-shape mag-hero-shape-3"></div>
-        </div>
+        <div class="mg-about-placeholder"><span class="material-symbols-outlined">groups</span></div>
         {% endif %}
+        <p class="mg-about-img-caption">{{ site_config.org_name|default:"La organización" }} — Nuestra historia</p>
+      </div>
+      <div class="mg-about-col-div"></div>
+      <div class="mg-about-text-col">
+        <span class="mg-about-label" data-editable="about_eyebrow">{{ site_config.about_eyebrow|default:"Sobre Nosotros" }}</span>
+        <h2 class="mg-about-title" data-editable="about_title">{{ site_config.about_title|default:"Quiénes Somos" }}</h2>
+        <div class="mg-about-body">
+          <p data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia y la innovación." }}</p>
+        </div>
+        <div class="mg-stat-trio">
+          <div class="mg-stat-trio-item">
+            <strong data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</strong>
+            <span data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
+          </div>
+          <div class="mg-stat-trio-item">
+            <strong data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</strong>
+            <span data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
+          </div>
+          <div class="mg-stat-trio-item">
+            <strong data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</strong>
+            <span data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </section>
 
-<!-- ── LIVE ── -->
-<section class="mag-section mag-section-accent" id="envivo"
-    data-on-air="{{ on_air|yesno:'true,false' }}"
-    data-hls-url="{{ hls_url }}"
-    id="streamContainer">
-    <div class="mag-container">
-        <div class="mag-section-header mag-section-header-left">
-            <span class="mag-tag">{{ site_config.live_title|default:"Transmisión en Vivo" }}</span>
-            <p class="mag-section-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Únete en tiempo real" }}</p>
-        </div>
-        <div class="mag-live-grid">
-            <div class="player-card" id="playerCard">
-                <div class="player-status {% if on_air %}on-air{% endif %}">
-                    <span class="status-dot {% if on_air %}on-air{% endif %}"></span>
-                    <span>{% if on_air %}EN VIVO{% else %}FUERA DE LÍNEA{% endif %}</span>
-                </div>
-                <video id="videoPlayer" class="video-player" controls playsinline preload="none"
-                    poster="{% static 'core/img/fondo.png' %}"></video>
-                <div class="play-overlay" id="playOverlay">
-                    <button class="play-btn" id="playBtn">
-                        <span class="material-symbols-outlined">play_arrow</span>
-                    </button>
-                    <p>Presioná para conectar</p>
-                </div>
-            </div>
-            <div class="chat-card" id="chatCard">
-                <div class="chat-header">
-                    <div class="chat-title-wrap"><span class="material-symbols-outlined">forum</span><span>Chat en Vivo</span></div>
-                    <span class="chat-online-count">Conectados</span>
-                </div>
-                <div class="chat-messages" id="chatMessages">
-                    {% if not on_air %}<div class="chat-msg system">📴 El chat está desactivado</div>
-                    {% else %}<div class="chat-msg system">👋 ¡Bienvenido!</div>{% endif %}
-                </div>
-                <div class="chat-input-wrap">
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Escribe un mensaje..." {% if not on_air %}disabled{% endif %}>
-                    <button class="chat-send-btn" id="chatSendBtn" {% if not on_air %}disabled{% endif %}>
-                        <span class="material-symbols-outlined">send</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+{% for ad in site_config.ads %}{% if ad.type == "banner" %}{% if forloop.first %}<div class="mg-banners"><div class="mg-wrap">{% endif %}
+<a href="{{ ad.url|default:'#' }}" class="mg-banner" target="_blank"><img src="{{ ad.img_url }}" alt=""></a>
+{% if forloop.last %}</div></div>{% endif %}{% endif %}{% endfor %}
+
+{% for ad in site_config.ads %}{% if ad.type == "sponsor" %}{% if forloop.first %}<div class="mg-sponsors"><div class="mg-wrap"><p class="mg-sponsors-lbl">Con el apoyo de</p><div class="mg-sponsors-row">{% endif %}
+<a href="{{ ad.url|default:'#' }}" class="mg-sponsor" target="_blank">{% if ad.logo_url %}<img src="{{ ad.logo_url }}" alt="{{ ad.name }}">{% else %}<span>{{ ad.name }}</span>{% endif %}</a>
+{% if forloop.last %}</div></div></div>{% endif %}{% endif %}{% endfor %}
+
+{% for section in site_config.dynamic_sections %}
+{% if section.position == "before_contact" or not section.position %}
+{% include "core/includes/dynamic_section.html" with sec=section %}
+{% endif %}{% endfor %}
+
+{% if site_config.events %}
+<section class="mg-events" id="eventos">
+  <div class="mg-wrap">
+    <div class="mg-events-header">
+      <span class="mg-section-label">Agenda</span>
+      <h2 class="mg-section-title">Próximos Eventos</h2>
     </div>
+    <div class="mg-events-list">
+      {% for ev in site_config.events %}
+      <div class="mg-event">
+        <div class="mg-event-date-col">
+          {% if ev.date %}
+          <span class="mg-event-day">{{ ev.date|date:"d" }}</span>
+          <span class="mg-event-month">{{ ev.date|date:"M"|upper }}</span>
+          {% endif %}
+        </div>
+        <div class="mg-event-body">
+          <h3 class="mg-event-title">{{ ev.name }}</h3>
+          {% if ev.desc %}<p class="mg-event-desc">{{ ev.desc }}</p>{% endif %}
+          <div class="mg-event-meta">
+            {% if ev.time %}<span><span class="material-symbols-outlined">schedule</span>{{ ev.time }}</span>{% endif %}
+            {% if ev.place %}<span><span class="material-symbols-outlined">location_on</span>{{ ev.place }}</span>{% endif %}
+          </div>
+          {% if ev.has_btn and ev.btn_url %}<a href="{{ ev.btn_url }}" class="mg-event-btn" target="_blank">{{ ev.btn_text|default:"Inscribirse" }}</a>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="mg-contact" id="contacto">
+  <div class="mg-wrap">
+    <div class="mg-contact-header">
+      <span class="mg-section-label" data-editable="contact_title">{{ site_config.contact_title|default:"Contacto" }}</span>
+      <h2 class="mg-section-title">Estamos aquí para ayudarte</h2>
+    </div>
+    <div class="mg-contact-grid">
+      <div class="mg-contact-item">
+        <span class="material-symbols-outlined">location_on</span>
+        <div><h4>Dirección</h4><p data-editable="contact_address">{{ site_config.contact_address|default:"Av. Principal 123, Ciudad, País" }}</p></div>
+      </div>
+      <div class="mg-contact-item">
+        <span class="material-symbols-outlined">mail</span>
+        <div><h4>Email</h4><p data-editable="contact_email">{{ site_config.contact_email|default:"contacto@tuorganizacion.com" }}</p></div>
+      </div>
+      <div class="mg-contact-item">
+        <span class="material-symbols-outlined">phone</span>
+        <div><h4>Teléfono</h4><p data-editable="contact_phone">{{ site_config.contact_phone|default:"+1(555) 123-4567" }}</p></div>
+      </div>
+    </div>
+  </div>
 </section>
 
-<!-- Modal -->
-<div id="modalNombre" class="modal-overlay oculto">
-    <div class="modal-box">
-        <h3>¿Cómo te llamás?</h3>
-        <p>Ingresá tu nombre para participar en el chat</p>
-        <input type="text" id="nombreUsuarioInput" placeholder="Tu nombre">
-        <button id="guardarNombreBtn">Entrar al chat</button>
+<footer class="mg-footer" id="siteFooter">
+  <div class="mg-wrap mg-footer-inner">
+    <div class="mg-footer-brand">
+      {% if site_config.logo_url %}<img src="{{ site_config.logo_url }}" alt="Logo" class="mg-footer-logo" id="mgFooterLogo">{% endif %}
+      <span class="mg-footer-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>
+      <span class="mg-footer-tag footer-slogan">{{ site_config.footer_tagline|default:site_config.org_slogan|default:"" }}</span>
+      {% if site_config.footer_email %}<a href="mailto:{{ site_config.footer_email }}" class="mg-footer-email">{{ site_config.footer_email }}</a>{% endif %}
     </div>
+    <div>
+      <span class="mg-footer-nav-title">Secciones</span>
+      <nav class="mg-footer-nav-list">
+        <a href="#inicio">Inicio</a><a href="#envivo">En Vivo</a>
+        <a href="#nosotros">Nosotros</a>
+        {% for sec in site_config.dynamic_sections %}<a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>{% endfor %}
+        {% if site_config.events %}<a href="#eventos">Eventos</a>{% endif %}
+        <a href="#contacto">Contacto</a>
+        {% for lnk in site_config.footer_links %}{% if lnk.label and lnk.url %}<a href="{{ lnk.url }}" target="_blank">{{ lnk.label }}</a>{% endif %}{% endfor %}
+      </nav>
+    </div>
+    {% if site_config.footer_show_social != False %}
+    <div class="mg-footer-social">
+      {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank"><span class="material-symbols-outlined">photo_camera</span></a>{% endif %}
+      {% if site_config.social_youtube %}<a href="{{ site_config.social_youtube }}" target="_blank"><span class="material-symbols-outlined">smart_display</span></a>{% endif %}
+      {% if site_config.social_facebook %}<a href="{{ site_config.social_facebook }}" target="_blank"><span class="material-symbols-outlined">thumb_up</span></a>{% endif %}
+      {% if site_config.social_tiktok %}<a href="{{ site_config.social_tiktok }}" target="_blank"><span class="material-symbols-outlined">music_note</span></a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <div class="mg-footer-bottom">
+    <div class="mg-wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%">
+      {% if site_config.footer_copyright %}
+      <p>{{ site_config.footer_copyright }}</p>
+      {% else %}
+      <p>© {% now "Y" %} <span class="footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>. Todos los derechos reservados.</p>
+      {% endif %}
+      <span class="mg-footer-sig">Kaircam Platform</span>
+    </div>
+  </div>
+</footer>
+
+<div id="modalNombre" class="mg-modal-bg oculto">
+  <div class="mg-modal">
+    <h3>¿Cómo te llamás?</h3>
+    <p>Ingresá tu nombre para participar en el chat</p>
+    <input type="text" id="nombreUsuarioInput" placeholder="Tu nombre">
+    <button id="guardarNombreBtn">Entrar al chat</button>
+  </div>
 </div>
 
-<!-- ── ABOUT ── -->
-<section class="mag-section" id="nosotros">
-    <div class="mag-container">
-        <div class="mag-about-grid">
-            <div class="mag-about-text">
-                <span class="mag-tag" data-editable="about_eyebrow">{{ site_config.about_eyebrow|default:"SOBRE NOSOTROS" }}</span>
-                <h2 class="mag-title" data-editable="about_title">{{ site_config.about_title|default:"Quiénes Somos" }}</h2>
-                <p class="mag-body" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia." }}</p>
-                <div class="mag-stats">
-                    <div class="mag-stat">
-                        <span class="mag-stat-n" data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</span>
-                        <span class="mag-stat-l" data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
-                    </div>
-                    <div class="mag-stat">
-                        <span class="mag-stat-n" data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</span>
-                        <span class="mag-stat-l" data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
-                    </div>
-                    <div class="mag-stat">
-                        <span class="mag-stat-n" data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</span>
-                        <span class="mag-stat-l" data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="mag-about-img-wrap">
-                {% if site_config.about_img_url %}
-                <img src="{{ site_config.about_img_url }}" alt="Nosotros" class="about-img">
-                {% else %}
-                <div class="about-img-placeholder">
-                    <span class="material-symbols-outlined">image</span>
-                    <span>Sin imagen</span>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ── SECCIONES DINÁMICAS ── -->
-{% for section in site_config.dynamic_sections %}
-<section class="mag-section {% if forloop.counter|divisibleby:2 %}mag-section-alt{% endif %}"
-         id="sec-{{ section.id }}" data-dynamic-id="{{ section.id }}">
-    <div class="mag-container">
-        <div class="mag-section-header">
-            <span class="mag-tag">{{ section.title }}</span>
-            {% if section.subtitle %}<p class="mag-section-sub">{{ section.subtitle }}</p>{% endif %}
-        </div>
-        <div class="mag-cards-grid">
-            {% for card in section.cards %}
-            <div class="mag-card" data-card-id="{{ forloop.counter0 }}">
-                <div class="mag-card-num">0{{ forloop.counter }}</div>
-                <span class="material-symbols-outlined mag-card-icon">{{ card.icon|default:"star" }}</span>
-                <h3 class="mag-card-title">{{ card.title }}</h3>
-                <p class="mag-card-text">{{ card.text }}</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-{% endfor %}
-
-<!-- ── CONTACTO ── -->
-<section class="mag-section mag-section-dark" id="contacto">
-    <div class="mag-container">
-        <div class="mag-section-header">
-            <span class="mag-tag mag-tag-light" data-editable="contact_title">{{ site_config.contact_title|default:"Contacto" }}</span>
-            <p class="mag-section-sub mag-section-sub-light" data-editable="contact_subtitle">{{ site_config.contact_subtitle|default:"Estamos aquí para ayudarte" }}</p>
-        </div>
-        <div class="mag-contact-grid">
-            <div class="mag-contact-item">
-                <span class="material-symbols-outlined">location_on</span>
-                <div><h4>Dirección</h4><p data-editable="contact_address">{{ site_config.contact_address|default:"Av. Principal 123" }}</p></div>
-            </div>
-            <div class="mag-contact-item">
-                <span class="material-symbols-outlined">mail</span>
-                <div><h4>Email</h4><p data-editable="contact_email">{{ site_config.contact_email|default:"contacto@org.com" }}</p></div>
-            </div>
-            <div class="mag-contact-item">
-                <span class="material-symbols-outlined">phone</span>
-                <div><h4>Teléfono</h4><p data-editable="contact_phone">{{ site_config.contact_phone|default:"+1 555 0000" }}</p></div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ── FOOTER ── -->
-<footer class="mag-footer">
-    <div class="mag-footer-inner">
-        <div class="mag-footer-brand">
-            <img src="{% if site_config.logo_url %}{{ site_config.logo_url }}{% else %}{% static 'core/img/logo.png' %}{% endif %}" alt="Logo" class="footer-logo">
-            <span class="footer-org-name" id="headerOrgName">{{ site_config.org_name|default:"Mi Organización" }}</span>
-        </div>
-        <div class="mag-footer-links">
-            <a href="#inicio">Inicio</a>
-            <a href="#envivo">En Vivo</a>
-            <a href="#nosotros">Nosotros</a>
-            <a href="#contacto">Contacto</a>
-        </div>
-        <div class="mag-footer-social">
-            {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank"><span class="material-symbols-outlined">photo_camera</span></a>{% endif %}
-            {% if site_config.social_youtube %}<a href="{{ site_config.social_youtube }}" target="_blank"><span class="material-symbols-outlined">smart_display</span></a>{% endif %}
-            {% if site_config.social_facebook %}<a href="{{ site_config.social_facebook }}" target="_blank"><span class="material-symbols-outlined">thumb_up</span></a>{% endif %}
-            {% if site_config.social_tiktok %}<a href="{{ site_config.social_tiktok }}" target="_blank"><span class="material-symbols-outlined">music_note</span></a>{% endif %}
-        </div>
-    </div>
-    <div class="mag-footer-bottom">
-        <p>© {% now "Y" %} {{ site_config.org_name|default:"Mi Organización" }}</p>
-    </div>
-</footer>
+<script src="{% static 'core/js/templates/magazine.js' %}"></script>

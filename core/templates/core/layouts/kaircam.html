@@ -34,6 +34,9 @@
             {% for sec in site_config.dynamic_sections %}
             <a href="#sec-{{ sec.id }}" class="kc-nav-a">{{ sec.nav_label|default:sec.title }}</a>
             {% endfor %}
+            {% if site_config.events %}
+            <a href="#eventos" class="kc-nav-a">Eventos</a>
+            {% endif %}
             <a href="#contacto" class="kc-nav-a">Contacto</a>
         </nav>
 
@@ -62,9 +65,25 @@
             <span></span><span></span><span></span>
         </button>
     </div>
-    <!-- Línea de señal animada -->
     <div class="kc-signal-bar"></div>
 </header>
+
+<!-- ══════════════════════════════════════════
+     AVISOS (notices) — debajo del header
+══════════════════════════════════════════ -->
+{% for ad in site_config.ads %}
+{% if ad.type == "notice" %}
+<div class="kc-notice-bar" style="background:{{ ad.bg_color|default:'#c9a84c' }}">
+    <div class="kc-wrap kc-notice-inner">
+        <span class="material-symbols-outlined">campaign</span>
+        <span class="kc-notice-text">{{ ad.title }}{% if ad.text %} — {{ ad.text }}{% endif %}</span>
+        <button class="kc-notice-close" onclick="this.closest('.kc-notice-bar').remove()">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
 
 <div class="site-content">
 
@@ -72,7 +91,6 @@
      HERO
 ══════════════════════════════════════════ -->
 <section class="kc-hero" id="inicio">
-    <!-- Fondo decorativo — grid + glow -->
     <div class="kc-hero-bg" aria-hidden="true">
         <div class="kc-grid-lines"></div>
         <div class="kc-glow-left"></div>
@@ -99,30 +117,29 @@
             </p>
 
             <div class="kc-hero-actions">
-                <a href="#envivo" class="kc-btn kc-red kc-btn-lg" data-editable="hero_btn_text">
+                <a href="#envivo" class="kc-btn kc-red kc-btn-lg">
                     <span class="material-symbols-outlined">play_circle</span>
-                    {{ site_config.hero_btn_text|default:"Ver transmisión" }}
+                    <span data-editable="hero_btn_text">{{ site_config.hero_btn_text|default:"Ver transmisión" }}</span>
                 </a>
                 <a href="#nosotros" class="kc-btn kc-ghost kc-btn-lg">Conocer más</a>
             </div>
         </div>
 
-        <!-- Stats en tarjeta lateral -->
         <div class="kc-stat-block">
             <div class="kc-stat-block-bar"></div>
             <div class="kc-stat">
                 <strong data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</strong>
-                <span   data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
+                <span   data-editable="stat1_label">{{ site_config.stat1_label|default:"Años de experiencia" }}</span>
             </div>
             <div class="kc-stat-divider"></div>
             <div class="kc-stat">
                 <strong data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</strong>
-                <span   data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
+                <span   data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros activos" }}</span>
             </div>
             <div class="kc-stat-divider"></div>
             <div class="kc-stat">
                 <strong data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</strong>
-                <span   data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
+                <span   data-editable="stat3_label">{{ site_config.stat3_label|default:"Países alcanzados" }}</span>
             </div>
         </div>
     </div>
@@ -153,7 +170,6 @@
             <p class="kc-sec-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Únete a nuestra comunidad en tiempo real" }}</p>
         </div>
 
-        <!-- streamContainer necesita los data-attrs para base.js -->
         <div class="kc-stream-grid" id="streamContainer"
              data-on-air="{{ on_air|yesno:'true,false' }}"
              data-hls-url="{{ hls_url }}">
@@ -196,11 +212,48 @@
         <div class="kc-about-body">
             <span class="kc-tag" data-editable="about_eyebrow">{{ site_config.about_eyebrow|default:"SOBRE NOSOTROS" }}</span>
             <h2 class="kc-h2 about-title" data-editable="about_title">{{ site_config.about_title|default:"Quiénes Somos" }}</h2>
-            <p class="kc-body about-text" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia y la innovación, trabajando cada día para transformar vidas y comunidades." }}</p>
+            <p class="kc-body about-text" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia y la innovación." }}</p>
             <div class="kc-accent-line"></div>
         </div>
     </div>
 </section>
+
+<!-- ══════════════════════════════════════════
+     BANNERS publicitarios — después de nosotros
+══════════════════════════════════════════ -->
+{% with has_banners=False %}
+{% for ad in site_config.ads %}{% if ad.type == "banner" %}{% if forloop.first %}
+<section class="kc-banners-section">
+    <div class="kc-wrap">
+{% endif %}
+        <a href="{{ ad.url|default:'#' }}" class="kc-ad-banner" target="_blank">
+            <img src="{{ ad.img_url }}" alt="{{ ad.alt|default:'Publicidad' }}">
+        </a>
+{% if forloop.last %}    </div>
+</section>{% endif %}
+{% endif %}{% endfor %}
+{% endwith %}
+
+<!-- ══════════════════════════════════════════
+     SPONSORS — después de nosotros
+══════════════════════════════════════════ -->
+{% for ad in site_config.ads %}{% if ad.type == "sponsor" %}{% if forloop.first %}
+<section class="kc-sponsors-section">
+    <div class="kc-wrap">
+        <p class="kc-sponsors-label">Con el apoyo de</p>
+        <div class="kc-sponsors-grid">
+{% endif %}
+            <a href="{{ ad.url|default:'#' }}" class="kc-sponsor-item" target="_blank" title="{{ ad.name }}">
+                {% if ad.logo_url %}
+                <img src="{{ ad.logo_url }}" alt="{{ ad.name }}">
+                {% else %}
+                <span class="kc-sponsor-name">{{ ad.name }}</span>
+                {% endif %}
+            </a>
+{% if forloop.last %}        </div>
+    </div>
+</section>{% endif %}
+{% endif %}{% endfor %}
 
 <!-- ══════════════════════════════════════════
      SECCIONES DINÁMICAS — ANTES DEL CONTACTO
@@ -210,6 +263,54 @@
 {% include "core/includes/dynamic_section.html" with sec=section %}
 {% endif %}
 {% endfor %}
+
+<!-- ══════════════════════════════════════════
+     EVENTOS
+══════════════════════════════════════════ -->
+{% if site_config.events %}
+<section class="kc-events" id="eventos">
+    <div class="kc-wrap">
+        <div class="kc-sec-head">
+            <h2 class="kc-h2">Próximos Eventos</h2>
+            <p class="kc-sec-sub">No te pierdas lo que viene</p>
+        </div>
+        <div class="kc-events-grid">
+            {% for ev in site_config.events %}
+            <div class="kc-event-card">
+                {% if ev.img_url %}
+                <div class="kc-event-img" style="background-image:url('{{ ev.img_url }}')"></div>
+                {% endif %}
+                <div class="kc-event-body">
+                    {% if ev.date %}
+                    <div class="kc-event-date-badge">
+                        <span class="kc-event-day">{{ ev.date|date:"d" }}</span>
+                        <span class="kc-event-month">{{ ev.date|date:"M" }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="kc-event-info">
+                        <h3 class="kc-event-title">{{ ev.name }}</h3>
+                        {% if ev.desc %}<p class="kc-event-desc">{{ ev.desc }}</p>{% endif %}
+                        <div class="kc-event-meta">
+                            {% if ev.time %}
+                            <span><span class="material-symbols-outlined">schedule</span>{{ ev.time }}</span>
+                            {% endif %}
+                            {% if ev.place %}
+                            <span><span class="material-symbols-outlined">location_on</span>{{ ev.place }}</span>
+                            {% endif %}
+                        </div>
+                        {% if ev.has_btn and ev.btn_url %}
+                        <a href="{{ ev.btn_url }}" class="kc-btn kc-red" target="_blank">
+                            {{ ev.btn_text|default:"Inscribirse" }}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <!-- ══════════════════════════════════════════
      CONTACT
@@ -251,8 +352,9 @@
 <!-- ══════════════════════════════════════════
      FOOTER
 ══════════════════════════════════════════ -->
-<footer class="kc-footer">
+<footer class="kc-footer" id="siteFooter">
     <div class="kc-wrap kc-footer-top">
+
         <div class="kc-footer-brand">
             {% if site_config.logo_url %}
             <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="kc-logo-img kc-logo-sm">
@@ -264,7 +366,14 @@
             {% endif %}
             <div>
                 <span class="kc-footer-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>
+                {% if site_config.footer_tagline %}
+                <span class="kc-footer-slogan">{{ site_config.footer_tagline }}</span>
+                {% else %}
                 <span class="kc-footer-slogan footer-slogan">{{ site_config.org_slogan|default:"Streaming Control" }}</span>
+                {% endif %}
+                {% if site_config.footer_email %}
+                <a href="mailto:{{ site_config.footer_email }}" class="kc-footer-email">{{ site_config.footer_email }}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -275,20 +384,32 @@
             {% for sec in site_config.dynamic_sections %}
             <a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
             {% endfor %}
+            {% if site_config.events %}<a href="#eventos">Eventos</a>{% endif %}
             <a href="#contacto">Contacto</a>
+            {% for lnk in site_config.footer_links %}
+            {% if lnk.label and lnk.url %}
+            <a href="{{ lnk.url }}" target="_blank" data-footer-link="1">{{ lnk.label }}</a>
+            {% endif %}
+            {% endfor %}
         </nav>
 
+        {% if site_config.footer_show_social != False %}
         <div class="kc-footer-social">
             {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank" aria-label="Instagram"><span class="material-symbols-outlined">photo_camera</span></a>{% endif %}
             {% if site_config.social_youtube   %}<a href="{{ site_config.social_youtube   }}" target="_blank" aria-label="YouTube"><span class="material-symbols-outlined">smart_display</span></a>{% endif %}
             {% if site_config.social_facebook  %}<a href="{{ site_config.social_facebook  }}" target="_blank" aria-label="Facebook"><span class="material-symbols-outlined">thumb_up</span></a>{% endif %}
             {% if site_config.social_tiktok    %}<a href="{{ site_config.social_tiktok    }}" target="_blank" aria-label="TikTok"><span class="material-symbols-outlined">music_note</span></a>{% endif %}
         </div>
+        {% endif %}
     </div>
 
     <div class="kc-footer-bottom">
         <div class="kc-wrap kc-footer-bottom-inner">
+            {% if site_config.footer_copyright %}
+            <p>{{ site_config.footer_copyright }}</p>
+            {% else %}
             <p>© {% now "Y" %} <span class="footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>. Todos los derechos reservados.</p>
+            {% endif %}
             <span class="kc-footer-sig">
                 <span class="kc-dot kc-dot-live" style="width:5px;height:5px"></span>
                 Kaircam Platform

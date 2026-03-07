@@ -34,5 +34,6 @@
   "color_text": "#f1f5f9",
   "font_display": "Barlow Condensed",
   "font_body": "Barlow",
-  "dynamic_sections": []
+  "dynamic_sections": [],
+  "_colors_from_template": "kaircam"
 }
