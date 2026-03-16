@@ -1,25 +1,39 @@
 {% load static %}
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'core/css/templates/kaircam.css' %}">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_config.org_name|default:"Kaircam" }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'core/css/templates/kaircam.css' %}">
+    <style>
+        :root {
+            --kc-offline-bg-image: url('https://via.placeholder.com/1920x1080/ff3e3e/ffffff?text=OFFLINE+KAIRCAM');
+            /* Reemplazar con la variable real del editor cuando esté disponible:
+               --kc-offline-bg-image: {% if site_config.offline_bg_url %}'{{ site_config.offline_bg_url }}'{% else %}none{% endif %};
+            */
+        }
+        /* Opcional: si la imagen se ve muy tenue, ajusta la opacidad en el CSS:
+           .kc-player-box .offline-overlay { background: rgba(0,0,0,0.7); }
+           .kc-player-box .offline-overlay::before { opacity: 0.5; }
+        */
+    </style>
+</head>
+<body>
 
 <div class="kc-noise" aria-hidden="true"></div>
 
-<!-- ══════════════════════════════════════════
-     HEADER
-══════════════════════════════════════════ -->
+<!-- HEADER -->
 <header class="kc-header" id="siteHeader">
     <div class="kc-wrap kc-header-inner">
 
         <a href="#inicio" class="kc-brand">
             {% if site_config.logo_url %}
-            <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="kc-logo-img" id="headerLogo">
+                <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="kc-logo-img" id="headerLogo">
             {% else %}
-            <div class="kc-logo" id="headerLogo">
-                <span class="kc-logo-dot"></span>
-                <span class="kc-logo-k">K</span>
-            </div>
+                <img src="{% static 'core/img/kaircam-logo.png' %}" alt="Kaircam" class="kc-logo-img" id="headerLogo">
             {% endif %}
             <div class="kc-brand-text">
                 <span class="kc-brand-name" id="headerOrgName">{{ site_config.org_name|default:"KAIRCAM" }}</span>
@@ -68,9 +82,7 @@
     <div class="kc-signal-bar"></div>
 </header>
 
-<!-- ══════════════════════════════════════════
-     AVISOS (notices) — debajo del header
-══════════════════════════════════════════ -->
+<!-- AVISOS (notices) -->
 {% for ad in site_config.ads %}
 {% if ad.type == "notice" %}
 <div class="kc-notice-bar" style="background:{{ ad.bg_color|default:'#c9a84c' }}">
@@ -87,9 +99,7 @@
 
 <div class="site-content">
 
-<!-- ══════════════════════════════════════════
-     HERO
-══════════════════════════════════════════ -->
+<!-- HERO -->
 <section class="kc-hero" id="inicio">
     <div class="kc-hero-bg" aria-hidden="true">
         <div class="kc-grid-lines"></div>
@@ -147,18 +157,14 @@
     <div class="kc-hero-slash" aria-hidden="true"></div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     SECCIONES DINÁMICAS — ANTES DEL PLAYER
-══════════════════════════════════════════ -->
+<!-- SECCIONES DINÁMICAS antes del player -->
 {% for section in site_config.dynamic_sections %}
 {% if section.position == "before_player" %}
 {% include "core/includes/dynamic_section.html" with sec=section %}
 {% endif %}
 {% endfor %}
 
-<!-- ══════════════════════════════════════════
-     LIVE — PLAYER + CHAT
-══════════════════════════════════════════ -->
+<!-- LIVE: PLAYER + CHAT -->
 <section class="kc-live" id="envivo" data-section="stream">
     <div class="kc-wrap">
         <div class="kc-sec-head">
@@ -183,18 +189,14 @@
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     SECCIONES DINÁMICAS — DESPUÉS DEL PLAYER
-══════════════════════════════════════════ -->
+<!-- SECCIONES DINÁMICAS después del player -->
 {% for section in site_config.dynamic_sections %}
 {% if section.position == "after_player" %}
 {% include "core/includes/dynamic_section.html" with sec=section %}
 {% endif %}
 {% endfor %}
 
-<!-- ══════════════════════════════════════════
-     ABOUT
-══════════════════════════════════════════ -->
+<!-- ABOUT -->
 <section class="kc-about" id="nosotros">
     <div class="kc-wrap kc-about-grid">
         <div class="kc-about-img about-image-wrap">
@@ -218,9 +220,7 @@
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════
-     BANNERS publicitarios — después de nosotros
-══════════════════════════════════════════ -->
+<!-- BANNERS publicitarios -->
 {% with has_banners=False %}
 {% for ad in site_config.ads %}{% if ad.type == "banner" %}{% if forloop.first %}
 <section class="kc-banners-section">
@@ -234,9 +234,7 @@
 {% endif %}{% endfor %}
 {% endwith %}
 
-<!-- ══════════════════════════════════════════
-     SPONSORS — después de nosotros
-══════════════════════════════════════════ -->
+<!-- SPONSORS -->
 {% for ad in site_config.ads %}{% if ad.type == "sponsor" %}{% if forloop.first %}
 <section class="kc-sponsors-section">
     <div class="kc-wrap">
@@ -255,18 +253,14 @@
 </section>{% endif %}
 {% endif %}{% endfor %}
 
-<!-- ══════════════════════════════════════════
-     SECCIONES DINÁMICAS — ANTES DEL CONTACTO
-══════════════════════════════════════════ -->
+<!-- SECCIONES DINÁMICAS antes del contacto -->
 {% for section in site_config.dynamic_sections %}
 {% if section.position == "before_contact" or not section.position %}
 {% include "core/includes/dynamic_section.html" with sec=section %}
 {% endif %}
 {% endfor %}
 
-<!-- ══════════════════════════════════════════
-     EVENTOS
-══════════════════════════════════════════ -->
+<!-- EVENTOS -->
 {% if site_config.events %}
 <section class="kc-events" id="eventos">
     <div class="kc-wrap">
@@ -312,9 +306,7 @@
 </section>
 {% endif %}
 
-<!-- ══════════════════════════════════════════
-     CONTACT
-══════════════════════════════════════════ -->
+<!-- CONTACT -->
 <section class="kc-contact" id="contacto" data-section="contact">
     <div class="kc-wrap">
         <div class="kc-sec-head">
@@ -349,9 +341,7 @@
 
 </div><!-- /site-content -->
 
-<!-- ══════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════ -->
+<!-- FOOTER -->
 <footer class="kc-footer" id="siteFooter">
     <div class="kc-wrap kc-footer-top">
 
@@ -359,10 +349,7 @@
             {% if site_config.logo_url %}
             <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="kc-logo-img kc-logo-sm">
             {% else %}
-            <div class="kc-logo kc-logo-sm">
-                <span class="kc-logo-dot"></span>
-                <span class="kc-logo-k">K</span>
-            </div>
+            <img src="{% static 'core/img/kaircam-logo.png' %}" alt="Kaircam" class="kc-logo-img kc-logo-sm">
             {% endif %}
             <div>
                 <span class="kc-footer-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>
@@ -430,3 +417,5 @@
 </div>
 
 <script src="{% static 'core/js/templates/kaircam.js' %}"></script>
+</body>
+</html> 

@@ -4,7 +4,19 @@
 {% block title %}{{ site_config.org_name|default:"Mi Organización" }}{% endblock %}
 
 {% block body %}
-{% with template=site_config.template|default:"moderno" %}
-{% include "core/layouts/"|add:template|add:".html" %}
-{% endwith %}
+<!-- DEBUG: user.is_superuser={{ user.is_superuser }}, cliente={{ cliente }}, cliente.activo={{ cliente.activo }}, maintenance_mode={{ site_config.maintenance_mode }} -->
+{% if user.is_superuser %}
+    {# Superusuarios siempre ven la página normal (pueden acceder al editor) #}
+    {% with template=site_config.template|default:"moderno" %}
+        {% include "core/layouts/"|add:template|add:".html" %}
+    {% endwith %}
+{% elif not cliente or not cliente.activo or site_config.maintenance_mode %}
+    {# Para no superusuarios, si no hay cliente, está inactivo o modo mantenimiento activo, mostrar mantenimiento #}
+    {% include "core/mantenimiento.html" %}
+{% else %}
+    {# No superusuario pero todo bien #}
+    {% with template=site_config.template|default:"moderno" %}
+        {% include "core/layouts/"|add:template|add:".html" %}
+    {% endwith %}
+{% endif %}
 {% endblock %}

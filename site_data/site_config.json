@@ -35,5 +35,12 @@
   "font_display": "Barlow Condensed",
   "font_body": "Barlow",
   "dynamic_sections": [],
+  "events": [],
+  "ads": [],
+  "footer_links": [],
+  "maintenance_mode": false,
+  "maintenance_message": "",
+  "maintenance_date": "",
+  "player_poster_url": "",
   "_colors_from_template": "kaircam"
 }

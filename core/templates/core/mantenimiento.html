@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sitio en Mantenimiento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        .mantenimiento-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 3rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        p {
+            font-size: 1.2rem;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        .fecha-info {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 1rem;
+            color: #718096;
+            border: 1px solid #e2e8f0;
+        }
+        .fecha-info strong {
+            color: #2d3748;
+        }
+        .cargando {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e2e8f0;
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .acceso-admin {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .acceso-admin p {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin-bottom: 0;
+        }
+        .acceso-admin a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .acceso-admin a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="mantenimiento-container">
+        <div class="cargando"></div>
+        <h1>🔧 Sitio en mantenimiento</h1>
+        <p>{{ site_config.maintenance_message|default:"Estamos trabajando para ofrecerte una experiencia aún mejor. Volveremos pronto." }}</p>
+        {% if site_config.maintenance_date %}
+        <div class="fecha-info">
+            <strong>Fecha estimada de vuelta:</strong> {{ site_config.maintenance_date }}
+        </div>
+        {% endif %}
+        
+        <div class="acceso-admin">
+            <p>
+                ¿Eres administrador?
+                <a href="{% url 'editor_login' %}">Acceder</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

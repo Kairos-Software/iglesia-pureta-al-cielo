@@ -20,6 +20,7 @@
     --kc-fb:      var(--font-body,   'Barlow', system-ui, sans-serif);
     --kc-ease:    0.18s ease;
     --kc-r:       10px;
+    --kc-offline-bg-image: none; /* Imagen de fondo para estado offline */
 }
 
 *,*::before,*::after { box-sizing: border-box; }
@@ -580,25 +581,88 @@ body {
 .kc-modal button:hover { background:var(--kc-red2); }
 
 /* ════════════════════════════════════
-   MEJORAS PLAYER Y CHAT
+   MEJORAS PLAYER Y CHAT (con imagen offline)
 ════════════════════════════════════ */
-.kc-player-box .offline-overlay {
-    position:absolute; inset:0; background:rgba(0,0,0,.85);
-    backdrop-filter:blur(4px);
-    display:flex; flex-direction:column; align-items:center;
-    justify-content:center; gap:8px; z-index:5;
-    color:var(--kc-muted); text-align:center;
+.kc-player-box {
+    position: relative;
+    overflow: hidden;
+    background-color: #000;
 }
+.kc-player-box video {
+    filter: brightness(0.7) blur(2px);
+    transition: filter 0.3s;
+}
+.kc-player-box .play-overlay {
+    background: rgba(0,0,0,0.3);
+}
+.kc-player-box .play-btn {
+    box-shadow: 0 0 30px rgba(255,62,62,0.8);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.kc-player-box .play-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 40px rgba(255,62,62,1);
+}
+
+/* ===== OFFLINE OVERLAY CORREGIDO (imagen nítida y centrada) ===== */
+.kc-player-box .offline-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3); /* Fondo claro para que la imagen se vea nítida */
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 5;
+    overflow: hidden;
+}
+
+.kc-player-box .offline-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: var(--kc-offline-bg-image, none);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.9; /* Alta opacidad para nitidez */
+    z-index: 0;
+    pointer-events: none;
+}
+
+.kc-player-box .offline-overlay .material-symbols-outlined,
+.kc-player-box .offline-overlay p,
+.kc-player-box .offline-overlay small {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8); /* Sombra para legibilidad */
+}
+
 .kc-player-box .offline-overlay .material-symbols-outlined {
-    font-size:48px; color:var(--kc-red); opacity:.8; animation:pulse 2s infinite;
+    font-size: 56px;
+    color: var(--kc-red);
+    opacity: 0.9;
+    animation: pulse 2s infinite;
 }
 .kc-player-box .offline-overlay p {
-    font-family:var(--kc-fd); font-size:16px; font-weight:700;
-    text-transform:uppercase; letter-spacing:2px; color:white;
+    font-family: var(--kc-fd);
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: white;
 }
 .kc-player-box .offline-overlay small {
-    font-size:12px; color:var(--kc-muted); max-width:200px; line-height:1.4;
+    font-size: 14px;
+    color: white;
+    max-width: 240px;
+    line-height: 1.5;
+    text-align: center;
+    opacity: 0.9;
 }
+
 .status-dot { width:8px; height:8px; border-radius:50%; background:var(--kc-muted); }
 .status-dot.live { background:var(--kc-red); animation:dotPulse 1.2s ease-in-out infinite; }
 .kc-chat-box .chat-online-indicator {

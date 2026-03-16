@@ -2,6 +2,8 @@
    LATERAL.CSS
    Negro profundo · Verde neón · Sidebar fija izquierda
    Inter / monospace · Layout de plataforma/app tipo Twitch
+   Mejoras: imagen de fondo en hero, sponsors más vistosos, ajustes responsivos,
+            fondo personalizable en overlay offline del reproductor
 ═══════════════════════════════════════════════════════════ */
 
 :root {
@@ -20,6 +22,7 @@
     --lt-fb:      var(--font-body,    'Inter', system-ui, sans-serif);
     --lt-sidebar: 240px;
     --lt-ease:    0.18s ease;
+    --lt-offline-bg-image: none; /* Imagen de fondo para estado offline del reproductor */
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -248,31 +251,54 @@ body {
 .lt-notice button .material-symbols-outlined { font-size: 12px; }
 
 /* ════════════════════════════════════
-   HERO — pantalla principal tipo dashboard
+   HERO — con imagen de fondo
 ════════════════════════════════════ */
 .lt-hero {
+    position: relative;
     padding: 2rem 1.5rem;
     border-bottom: 1px solid var(--lt-rule);
     background: var(--lt-bg);
-    position: relative;
     overflow: hidden;
     display: grid;
     grid-template-columns: 1fr 300px;
     gap: 1.5rem;
     align-items: stretch;
+    min-height: 400px;
 }
 
-/* Fondo sutil */
-.lt-hero::before {
-    content: '';
+.lt-hero-bg {
     position: absolute;
-    top: -60px; right: -60px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(0,230,118,.04) 0%, transparent 70%);
-    pointer-events: none;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.2;
+    z-index: 0;
+    transition: opacity 0.3s;
 }
-
-.lt-hero-content { position: relative; z-index: 1; }
+.lt-hero:hover .lt-hero-bg {
+    opacity: 0.3;
+}
+.lt-hero-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 20% 50%, transparent 0%, var(--lt-bg) 90%);
+    z-index: 1;
+}
+.lt-hero-content {
+    position: relative;
+    z-index: 2;
+}
+.lt-hero-stats {
+    position: relative;
+    z-index: 2;
+    background: var(--lt-card);
+    border: 1px solid var(--lt-rule);
+    border-radius: 4px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
 
 .lt-hero-badge {
     display: inline-flex; align-items: center; gap: .4rem;
@@ -318,16 +344,6 @@ body {
 .lt-btn--ghost:hover { border-color: var(--lt-green); color: var(--lt-green); }
 
 /* Stats panel derecho del hero */
-.lt-hero-stats {
-    background: var(--lt-card);
-    border: 1px solid var(--lt-rule);
-    border-radius: 4px;
-    padding: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    position: relative; z-index: 1;
-}
 .lt-hero-stats-title {
     font-size: .6rem; font-weight: 600; letter-spacing: .15em;
     text-transform: uppercase; color: var(--lt-muted);
@@ -346,7 +362,6 @@ body {
     letter-spacing: -.02em; line-height: 1;
     font-variant-numeric: tabular-nums;
 }
-.lt-stat-sub { font-size: .62rem; color: var(--lt-muted); text-transform: uppercase; letter-spacing: .1em; display: block; margin-top: 1px; }
 
 /* ════════════════════════════════════
    LIVE SECTION — player full ancho
@@ -416,10 +431,64 @@ body {
 .lt-player-wrap .play-btn .material-symbols-outlined { font-size:28px; color:var(--lt-bg); }
 .lt-player-wrap .play-overlay p,
 .lt-player-wrap .play-overlay-txt { font-size:.6rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--lt-muted); }
-.lt-player-wrap .offline-overlay { position:absolute; inset:0; background:rgba(11,13,15,.92); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; z-index:5; }
-.lt-player-wrap .offline-overlay .material-symbols-outlined { font-size:48px; color:var(--lt-green); opacity:.3; animation:ltPulse 2.5s infinite; }
-.lt-player-wrap .offline-overlay p { font-size:1rem; font-weight:700; color:var(--lt-text); }
-.lt-player-wrap .offline-overlay small { font-size:.78rem; color:var(--lt-muted); max-width:200px; line-height:1.5; text-align:center; }
+
+/* ===== OFFLINE OVERLAY CORREGIDO (imagen nítida y centrada) ===== */
+.lt-player-wrap .offline-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3); /* Fondo claro para que la imagen se vea nítida */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 5;
+    overflow: hidden;
+}
+
+/* Pseudo-elemento para la imagen de fondo sutil */
+.lt-player-wrap .offline-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: var(--lt-offline-bg-image, none);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.9; /* Alta opacidad para nitidez */
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Aseguramos que el contenido quede sobre la imagen */
+.lt-player-wrap .offline-overlay .material-symbols-outlined,
+.lt-player-wrap .offline-overlay p,
+.lt-player-wrap .offline-overlay small {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.lt-player-wrap .offline-overlay .material-symbols-outlined {
+    font-size: 56px;
+    color: var(--lt-green);
+    opacity: 0.9;
+    animation: ltPulse 2.5s infinite;
+}
+.lt-player-wrap .offline-overlay p {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+}
+.lt-player-wrap .offline-overlay small {
+    font-size: 0.9rem;
+    color: white;
+    max-width: 240px;
+    line-height: 1.5;
+    text-align: center;
+    opacity: 0.9;
+}
+
 .status-dot { width:7px; height:7px; border-radius:50%; background:var(--lt-muted); }
 .status-dot.on-air, .status-dot.live { background:var(--lt-green); animation:ltPulse 1.4s ease-in-out infinite; }
 
@@ -524,21 +593,95 @@ body {
 }
 
 /* ════════════════════════════════════
-   BANNERS / SPONSORS
+   BANNERS
 ════════════════════════════════════ */
-.lt-banners { padding: 1rem 1.5rem; border-bottom: 1px solid var(--lt-rule); }
-.lt-banner { display:block; border:1px solid var(--lt-rule); margin-bottom:.5rem; transition:border-color var(--lt-ease); }
-.lt-banner:last-child { margin-bottom:0; }
-.lt-banner:hover { border-color:var(--lt-green); }
-.lt-banner img { width:100%; display:block; max-height:80px; object-fit:cover; }
-.lt-sponsors { padding:1rem 1.5rem; border-bottom:1px solid var(--lt-rule); }
-.lt-sponsors-lbl { font-size:.6rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--lt-muted); margin-bottom:1rem; }
-.lt-sponsors-row { display:flex; flex-wrap:wrap; gap:.5rem; }
-.lt-sponsor { display:flex; align-items:center; justify-content:center; height:44px; padding:6px 14px; border:1px solid var(--lt-rule); text-decoration:none; transition:var(--lt-ease); background:var(--lt-card); border-radius:3px; }
-.lt-sponsor:hover { border-color:var(--lt-green); }
-.lt-sponsor img { max-height:24px; object-fit:contain; filter:grayscale(1) opacity(.5); transition:var(--lt-ease); }
-.lt-sponsor:hover img { filter:none; opacity:1; }
-.lt-sponsor span { font-size:.75rem; color:var(--lt-muted); }
+.lt-banners {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--lt-rule);
+    background: var(--lt-bg2);
+}
+.lt-banners-inner {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+.lt-banner {
+    display: block;
+    border: 1px solid var(--lt-rule);
+    transition: border-color var(--lt-ease);
+}
+.lt-banner:hover { border-color: var(--lt-green); }
+.lt-banner img {
+    width: 100%;
+    display: block;
+    max-height: 80px;
+    object-fit: cover;
+}
+
+/* ════════════════════════════════════
+   SPONSORS — estilo propio de Lateral
+════════════════════════════════════ */
+.lt-sponsors-section {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid var(--lt-rule);
+    background: var(--lt-bg);
+}
+.lt-sponsors-inner {
+    max-width: 100%;
+    margin: 0 auto;
+}
+.lt-sponsors-label {
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--lt-green);
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.lt-sponsors-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+.lt-sponsor-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lt-card);
+    border: 1px solid var(--lt-rule);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    min-width: 140px;
+    height: 70px;
+    text-decoration: none;
+    transition: all var(--lt-ease);
+}
+.lt-sponsor-card:hover {
+    border-color: var(--lt-green);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,230,118,0.2);
+}
+.lt-sponsor-logo {
+    max-height: 40px;
+    max-width: 120px;
+    object-fit: contain;
+    filter: grayscale(1) opacity(0.7);
+    transition: filter var(--lt-ease);
+}
+.lt-sponsor-card:hover .lt-sponsor-logo {
+    filter: grayscale(0) opacity(1);
+}
+.lt-sponsor-name {
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--lt-muted);
+    transition: color var(--lt-ease);
+}
+.lt-sponsor-card:hover .lt-sponsor-name {
+    color: var(--lt-green);
+}
 
 /* ════════════════════════════════════
    DYNAMIC SECTIONS
@@ -689,6 +832,7 @@ body {
     .lt-contact-grid { grid-template-columns: 1fr 1fr; }
     .type-split .ds-inner { grid-template-columns: 1fr; gap: 1.5rem; }
 }
+
 @media (max-width: 768px) {
     :root { --lt-sidebar: 0px; }
     .lt-sidebar { transform: translateX(-100%); width: 240px; transition: transform .3s ease; }
@@ -699,4 +843,6 @@ body {
     .lt-events-grid .lt-event > *:last-child { display: none; }
     .lt-hero-stats { display: none; }
     .ds-cards-grid { grid-template-columns: 1fr; }
+    .lt-sponsors-grid { flex-direction: column; align-items: center; }
+    .lt-sponsor-card { width: 100%; max-width: 300px; }
 }

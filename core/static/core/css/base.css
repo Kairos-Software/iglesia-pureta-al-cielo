@@ -369,19 +369,35 @@ input, textarea, select { font-family: inherit; }
     opacity: 0.4;
 }
 
-/* ── Responsive dinámicas ── */
-@media (max-width: 768px) {
-    .dynamic-section.type-split .ds-inner {
-        grid-template-columns: 1fr;
-        gap: 32px;
-        direction: ltr !important;
-    }
-    .dynamic-section.type-split .ds-inner > * { direction: ltr; }
-
-    .dynamic-section.type-banner .ds-inner {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .dynamic-section .ds-inner { padding: 0 20px; }
+/* Overlay de carga para el iframe */
+.ep-iframe-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+.ep-iframe-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+}
+.ep-iframe-overlay .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: var(--ep-red);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+.ep-iframe-container {
+    position: relative;
 }

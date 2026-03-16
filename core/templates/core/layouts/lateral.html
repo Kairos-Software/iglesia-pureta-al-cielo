@@ -7,9 +7,9 @@
 <aside class="lt-sidebar" id="ltSidebar">
   <a href="#inicio" class="lt-sidebar-brand">
     {% if site_config.logo_url %}
-    <img src="{{ site_config.logo_url }}" alt="Logo" class="lt-sidebar-logo" id="ltSidebarLogo">
+      <img src="{{ site_config.logo_url }}" alt="Logo" class="lt-sidebar-logo" id="ltSidebarLogo">
     {% else %}
-    <img src="{% static 'core/img/logo.png' %}" alt="Logo" class="lt-sidebar-logo" id="ltSidebarLogo">
+      <img src="{% static 'core/img/kaircam-logo.png' %}" alt="Kaircam" class="lt-sidebar-logo" id="ltSidebarLogo">
     {% endif %}
     <div>
       <span class="lt-sidebar-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>
@@ -109,8 +109,10 @@
     </div>
   </div>
 
-  {# ── HERO ── #}
+  {# ── HERO con imagen de fondo ── #}
   <section class="lt-hero" id="inicio">
+    <div class="lt-hero-bg" {% if site_config.hero_bg_url %}style="background-image:url('{{ site_config.hero_bg_url }}')"{% endif %}></div>
+    <div class="lt-hero-overlay"></div>
     <div class="lt-hero-content">
       <div class="lt-hero-badge">
         <span class="material-symbols-outlined">rocket_launch</span>
@@ -230,13 +232,37 @@
   </section>
 
   {# Banners #}
-  {% for ad in site_config.ads %}{% if ad.type == "banner" %}{% if forloop.first %}<div class="lt-banners" data-dyn="1"><div>{% endif %}
-  <a href="{{ ad.url|default:'#' }}" class="lt-banner" target="_blank"><img src="{{ ad.img_url }}" alt=""></a>
-  {% if forloop.last %}</div></div>{% endif %}{% endif %}{% endfor %}
+  {% for ad in site_config.ads %}{% if ad.type == "banner" %}
+  {% if forloop.first %}<div class="lt-banners" data-dyn="1"><div class="lt-banners-inner">{% endif %}
+  <a href="{{ ad.url|default:'#' }}" class="lt-banner" target="_blank"><img src="{{ ad.img_url }}" alt="{{ ad.alt|default:'Banner' }}"></a>
+  {% if forloop.last %}</div></div>{% endif %}
+  {% endif %}{% endfor %}
 
-  {% for ad in site_config.ads %}{% if ad.type == "sponsor" %}{% if forloop.first %}<div class="lt-sponsors" data-dyn="1"><p class="lt-sponsors-lbl">Con el apoyo de</p><div class="lt-sponsors-row">{% endif %}
-  <a href="{{ ad.url|default:'#' }}" class="lt-sponsor" target="_blank">{% if ad.logo_url %}<img src="{{ ad.logo_url }}" alt="{{ ad.name }}">{% else %}<span>{{ ad.name }}</span>{% endif %}</a>
-  {% if forloop.last %}</div></div>{% endif %}{% endif %}{% endfor %}
+  {# Sponsors - con estilo propio de Lateral #}
+  {% if site_config.ads %}
+    {% with sponsors=site_config.ads|dictsortreversed:"type" %}
+      {% if sponsors|length > 0 %}
+        <div class="lt-sponsors-section" data-dyn="1">
+          <div class="lt-sponsors-inner">
+            <p class="lt-sponsors-label">Con el apoyo de</p>
+            <div class="lt-sponsors-grid">
+              {% for ad in site_config.ads %}
+                {% if ad.type == "sponsor" %}
+                  <a href="{{ ad.url|default:'#' }}" class="lt-sponsor-card" target="_blank">
+                    {% if ad.logo_url %}
+                      <img src="{{ ad.logo_url }}" alt="{{ ad.name }}" class="lt-sponsor-logo">
+                    {% else %}
+                      <span class="lt-sponsor-name">{{ ad.name }}</span>
+                    {% endif %}
+                  </a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endwith %}
+  {% endif %}
 
   {# before_contact #}
   {% for section in site_config.dynamic_sections %}
@@ -305,7 +331,11 @@
   {# ── FOOTER ── #}
   <footer class="lt-footer" id="siteFooter">
     <div class="lt-footer-brand">
-      {% if site_config.logo_url %}<img src="{{ site_config.logo_url }}" alt="Logo" class="lt-footer-logo" id="ltFooterLogo">{% endif %}
+      {% if site_config.logo_url %}
+        <img src="{{ site_config.logo_url }}" alt="Logo" class="lt-footer-logo" id="ltFooterLogo">
+      {% else %}
+        <img src="{% static 'core/img/kaircam-logo.png' %}" alt="Kaircam" class="lt-footer-logo" id="ltFooterLogo">
+      {% endif %}
       <span class="lt-footer-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>
     </div>
     {% if site_config.footer_show_social != False %}

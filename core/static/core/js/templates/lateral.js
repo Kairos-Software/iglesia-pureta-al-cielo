@@ -1,4 +1,4 @@
-/* lateral.js */
+/* lateral.js - Versión mejorada con soporte para imagen de fondo en hero y sponsors */
 document.addEventListener("DOMContentLoaded", () => {
 
     const sidebar = document.getElementById("ltSidebar");
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ── Scroll reveal ──
     if ("IntersectionObserver" in window) {
-        const els = document.querySelectorAll(".lt-stat-card, .lt-stat-row, .lt-contact-item, .ds-card, .lt-event");
+        const els = document.querySelectorAll(".lt-stat-card, .lt-stat-row, .lt-contact-item, .ds-card, .lt-event, .lt-sponsor-card");
         const revObs = new IntersectionObserver(entries => {
             entries.forEach((e, i) => {
                 if (e.isIntersecting) { e.target.style.animation = `fadeUp 0.35s ease ${i*0.05}s forwards`; revObs.unobserve(e.target); }
@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 Object.entries(cfg).forEach(([k,v]) => { if (typeof v==="string"||typeof v==="number") applyField(k,v); });
                 applyCssVars(cfg);
                 if (cfg.logo_url) applyLogo(cfg.logo_url);
+                if (cfg.hero_bg_url !== undefined) applyHeroBg(cfg.hero_bg_url);
                 if (cfg.about_img_url !== undefined) applyAboutImg(cfg.about_img_url);
                 if (Array.isArray(cfg.dynamic_sections)) syncDynNav(cfg.dynamic_sections);
                 break;
@@ -94,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const { key, value } = payload; if (!key) return;
                 applyField(key, value);
                 if (key==="logo_url")      applyLogo(value);
+                if (key==="hero_bg_url")   applyHeroBg(value);
                 if (key==="about_img_url") applyAboutImg(value);
                 if (key.startsWith("color_")||key.startsWith("font_")) applyCssVarsFromField(key,value);
                 if (key==="events")        applyEvents(value);
@@ -142,6 +144,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function applyLogo(url) {
         ["ltSidebarLogo","ltFooterLogo"].forEach(id=>{ const el=document.getElementById(id); if(el) el.src=url; });
+    }
+
+    function applyHeroBg(url) {
+        const heroBg = document.querySelector(".lt-hero-bg");
+        if (!heroBg) return;
+        if (url) {
+            heroBg.style.backgroundImage = `url('${url}')`;
+            heroBg.style.opacity = "0.2";
+        } else {
+            heroBg.style.backgroundImage = "none";
+        }
     }
 
     function applyAboutImg(url) {
@@ -197,10 +210,30 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         const banners=ads.filter(a=>a.type==="banner");
         let bEl=document.querySelector(".lt-banners[data-dyn]");
-        if(banners.length){if(!bEl){bEl=document.createElement("div");bEl.className="lt-banners";bEl.dataset.dyn="1";document.getElementById("nosotros")?.after(bEl);}bEl.innerHTML=`<div>${banners.map(ad=>`<a href="${ad.url||'#'}" class="lt-banner" target="_blank"><img src="${ad.img_url}" alt=""></a>`).join("")}</div>`;}else bEl?.remove();
+        if(banners.length){
+            if(!bEl){bEl=document.createElement("div");bEl.className="lt-banners";bEl.dataset.dyn="1";document.getElementById("nosotros")?.after(bEl);}
+            bEl.innerHTML=`<div class="lt-banners-inner">${banners.map(ad=>`<a href="${ad.url||'#'}" class="lt-banner" target="_blank"><img src="${ad.img_url}" alt="${esc(ad.alt||'Banner')}"></a>`).join("")}</div>`;
+        } else bEl?.remove();
+
         const sponsors=ads.filter(a=>a.type==="sponsor");
-        let sEl=document.querySelector(".lt-sponsors[data-dyn]");
-        if(sponsors.length){if(!sEl){sEl=document.createElement("div");sEl.className="lt-sponsors";sEl.dataset.dyn="1";document.getElementById("nosotros")?.after(sEl);}sEl.innerHTML=`<p class="lt-sponsors-lbl">Con el apoyo de</p><div class="lt-sponsors-row">${sponsors.map(ad=>`<a href="${ad.url||'#'}" class="lt-sponsor" target="_blank">${ad.logo_url?`<img src="${ad.logo_url}" alt="">` :`<span>${esc(ad.name||"")}</span>`}</a>`).join("")}</div>`;}else sEl?.remove();
+        let sEl=document.querySelector(".lt-sponsors-section[data-dyn]");
+        if(sponsors.length){
+            if(!sEl){
+                sEl=document.createElement("div");sEl.className="lt-sponsors-section";sEl.dataset.dyn="1";
+                document.getElementById("nosotros")?.after(sEl);
+            }
+            sEl.innerHTML=`
+                <div class="lt-sponsors-inner">
+                    <p class="lt-sponsors-label">Con el apoyo de</p>
+                    <div class="lt-sponsors-grid">
+                        ${sponsors.map(ad=>`
+                            <a href="${ad.url||'#'}" class="lt-sponsor-card" target="_blank">
+                                ${ad.logo_url?`<img src="${ad.logo_url}" alt="${esc(ad.name||'')}" class="lt-sponsor-logo">`:`<span class="lt-sponsor-name">${esc(ad.name||'')}</span>`}
+                            </a>
+                        `).join("")}
+                    </div>
+                </div>`;
+        } else sEl?.remove();
     }
 
     function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}

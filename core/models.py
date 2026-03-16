@@ -21,6 +21,7 @@ class Cliente(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     bio = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
 
     class Meta:
         managed = False

@@ -6,8 +6,9 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate
-from core.models import CanalTransmision
+from django.contrib.auth import authenticate, login as auth_login, logout
+from django.contrib.auth.models import User
+from core.models import CanalTransmision, Cliente
 
 
 CONFIG_PATH = os.path.join(settings.BASE_DIR, "site_data", "site_config.json")
@@ -39,19 +40,6 @@ PLANTILLAS_META = {
 
 
 def _leer_colores_css(template_id: str) -> dict:
-    """
-    Lee automáticamente los colores y fuentes del CSS del template.
-    Extrae los fallbacks de las variables globales --bg, --accent, etc.
-
-    El CSS de cada template tiene este patrón en :root:
-        --x-bg:     var(--bg,           #070d16);
-        --x-accent: var(--accent,       #c9a84c);
-        --x-text:   var(--text,         #edf2f8);
-        --x-fd:     var(--font-display, 'Cormorant Garamond', ...);
-        --x-fb:     var(--font-body,    'DM Sans', ...);
-
-    Si el CSS no existe o no tiene el patrón, devuelve defaults seguros.
-    """
     css_path = os.path.join(
         settings.BASE_DIR,
         "core", "static", "core", "css", "templates",
@@ -69,40 +57,40 @@ def _leer_colores_css(template_id: str) -> dict:
     with open(css_path, "r", encoding="utf-8") as f:
         css = f.read()
 
-    root_match = re.search(r":root\s*\{([^}]+)\}", css, re.DOTALL)
-    if not root_match:
+    pattern = r'html\[data-template="' + re.escape(template_id) + r'"\]\s*\{([^}]+)\}'
+    match = re.search(pattern, css, re.DOTALL)
+    if not match:
+        match = re.search(r':root\s*\{([^}]+)\}', css, re.DOTALL)
+    if not match:
         return {}
 
-    root_block = root_match.group(1)
+    root_block = match.group(1)
+    root_block = re.sub(r'/\*.*?\*/', '', root_block, flags=re.DOTALL)
 
-    def extract_fallback(global_var: str) -> str:
-        escaped = global_var.replace("-", r"\-")
-        pattern = rf"var\(\s*{escaped}\s*,\s*([^)]+?)\s*\)"
-        match   = re.search(pattern, root_block)
-        if not match:
-            return ""
-        value = match.group(1).strip().split(",")[0].strip().strip("'\"")
-        return value
+    def extraer(nombre_var):
+        patron = r'--[a-zA-Z0-9_-]+\s*:\s*var\(\s*' + re.escape(nombre_var) + r'\s*,\s*([^;]+?)\s*\)'
+        m = re.search(patron, root_block, re.DOTALL)
+        if m:
+            valor = m.group(1).strip().strip('\'"')
+            if ',' in valor and not valor.startswith('#'):
+                valor = valor.split(',')[0].strip().strip('\'"')
+            return valor
+        return None
 
     return {
-        "color_bg_primary": extract_fallback("--bg"),
-        "color_accent":     extract_fallback("--accent"),
-        "color_text":       extract_fallback("--text"),
-        "font_display":     extract_fallback("--font-display"),
-        "font_body":        extract_fallback("--font-body"),
+        "color_bg_primary": extraer('--bg') or "#111111",
+        "color_accent":     extraer('--accent') or "#ffffff",
+        "color_text":       extraer('--text') or "#eeeeee",
+        "font_display":     extraer('--font-display') or "DM Sans",
+        "font_body":        extraer('--font-body') or "DM Sans",
     }
 
 
 def _style_defaults(template_id: str) -> dict:
-    """Colores y fuentes de un template, leídos de su CSS."""
     return _leer_colores_css(template_id)
 
 
 def _template_defaults_json() -> str:
-    """
-    JSON que consume editor_page.js para aplicar colores
-    al seleccionar una plantilla. Se genera desde los CSS — automático.
-    """
     return json.dumps(
         {pid: _leer_colores_css(pid) for pid in PLANTILLAS_META},
         ensure_ascii=False
@@ -110,7 +98,6 @@ def _template_defaults_json() -> str:
 
 
 def _colores_para_selector(template_id: str) -> list:
-    """Los tres colores que muestra el selector visual del editor."""
     d = _leer_colores_css(template_id)
     return [
         d.get("color_bg_primary", "#333"),
@@ -119,9 +106,6 @@ def _colores_para_selector(template_id: str) -> list:
     ]
 
 
-# ══════════════════════════════════════════════════════
-# CONFIG DEFAULT DEL SISTEMA (solo contenido, no colores)
-# ══════════════════════════════════════════════════════
 CONFIG_DEFAULT = {
     "template":         "kaircam",
     "org_name":         "Mi Organización",
@@ -159,6 +143,13 @@ CONFIG_DEFAULT = {
     "font_display":     "",
     "font_body":        "",
     "dynamic_sections": [],
+    "events":           [],
+    "ads":              [],
+    "footer_links":     [],
+    "maintenance_mode": False,
+    "maintenance_message": "",
+    "maintenance_date": "",
+    "player_poster_url": "",
 }
 
 
@@ -175,15 +166,11 @@ def cargar_config():
     template_anterior = merged.get("_colors_from_template", "")
     color_keys = ["color_bg_primary", "color_accent", "color_text", "font_display", "font_body"]
 
-    # Actualizar colores si:
-    # 1. Algún color esta vacio (primera vez), o
-    # 2. El template cambio desde el CSS sin pasar por el editor
     if any(not merged.get(k) for k in color_keys) or template_actual != template_anterior:
         css_defaults = _leer_colores_css(template_actual)
         for k in color_keys:
             merged[k] = css_defaults.get(k, merged.get(k, ""))
         merged["_colors_from_template"] = template_actual
-        # Persistir para no re-leer el CSS en cada request
         guardar_config_archivo(merged)
 
     return merged
@@ -242,11 +229,28 @@ def listar_plantillas():
 
 def home(request):
     site_config = cargar_config()
+    
+    # Obtener el cliente asociado al usuario de la página
+    try:
+        user = User.objects.get(username=settings.IGLESIA_USER)
+        cliente = Cliente.objects.get(user=user)
+    except User.DoesNotExist:
+        cliente = None
+    except Cliente.DoesNotExist:
+        # Si no existe el cliente, lo creamos con valores por defecto
+        cliente = Cliente.objects.create(
+            user=user,
+            nombre=user.first_name or user.username,
+            apellido=user.last_name or '',
+            bio=''
+        )
+
     response = render(request, "core/home.html", {
         "site_config":      site_config,
         "site_config_json": json.dumps(site_config, ensure_ascii=False),
         "editor_logged_in": es_editor_logueado(request),
         "plantillas":       listar_plantillas(),
+        "cliente":          cliente,
         **get_stream_context(),
     })
     response["X-Frame-Options"] = "SAMEORIGIN"
@@ -282,39 +286,89 @@ def obtener_mensajes(request):
 
 def editor_login(request):
     site_config = cargar_config()
+    maintenance_mode = site_config.get('maintenance_mode', False)
+    
+    # Obtener el cliente para saber si está activo
+    try:
+        user_owner = User.objects.get(username=settings.IGLESIA_USER)
+        cliente = Cliente.objects.get(user=user_owner)
+        cliente_inactivo = not cliente.activo
+    except (User.DoesNotExist, Cliente.DoesNotExist):
+        cliente_inactivo = False  # Si no existe, asumimos activo
+
+    # El sitio está en "modo restringido" si el cliente está inactivo O el modo mantenimiento manual está activo
+    modo_restringido = maintenance_mode or cliente_inactivo
+
+    error = None
+
+    # Si ya está autenticado y es superusuario, redirigir a home
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect("home")
+        else:
+            logout(request)
+
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
-        if username != settings.IGLESIA_USER:
-            return render(request, "core/login.html", {
-                "error": "Usuario no autorizado para este sitio.",
-                "site_name": site_config.get("org_name"),
-            })
         user = authenticate(request, username=username, password=password)
+
         if user is not None:
-            request.session["editor_logged_in"] = True
-            request.session["editor_username"]  = username
-            request.session.set_expiry(60 * 60 * 8)
-            return redirect("home")
+            # Si el sitio está restringido, solo superusuarios pueden acceder
+            if modo_restringido and not user.is_superuser:
+                error = "El sitio está en mantenimiento. Solo administradores pueden acceder."
+            elif user.is_superuser or username == settings.IGLESIA_USER:
+                auth_login(request, user)
+                request.session["editor_logged_in"] = True
+                request.session["editor_username"] = username
+                request.session.set_expiry(60 * 60 * 8)
+                return redirect("home")
+            else:
+                error = "Usuario no autorizado para este sitio."
+        else:
+            error = "Contraseña incorrecta."
+
+        # Si hay error, renderizar login con mensaje
         return render(request, "core/login.html", {
-            "error": "Contraseña incorrecta.",
+            "error": error,
             "site_name": site_config.get("org_name"),
         })
-    if es_editor_logueado(request):
-        return redirect("home")
-    return render(request, "core/login.html", {"site_name": site_config.get("org_name")})
+
+    # GET: mostrar formulario, con mensaje si el sitio está restringido
+    if modo_restringido:
+        error = "El sitio está en mantenimiento. Solo administradores pueden acceder."
+
+    return render(request, "core/login.html", {
+        "error": error,
+        "site_name": site_config.get("org_name"),
+    })
 
 
 def editor_logout(request):
+    logout(request)
     request.session.pop("editor_logged_in", None)
     request.session.pop("editor_username", None)
     return redirect("home")
 
 
 def editor_page(request):
-    if not es_editor_logueado(request):
-        return redirect("editor_login")
     site_config = cargar_config()
+    maintenance_mode = site_config.get('maintenance_mode', False)
+
+    # Si el modo mantenimiento está activo y el usuario no es superusuario, cerrar sesión y redirigir al login
+    if maintenance_mode and not request.user.is_superuser:
+        logout(request)
+        request.session.pop("editor_logged_in", None)
+        request.session.pop("editor_username", None)
+        return render(request, "core/login.html", {
+            "error": "El sitio está en mantenimiento. Solo administradores pueden acceder.",
+            "site_name": site_config.get("org_name"),
+        })
+
+    # Si no está autenticado, redirigir al login
+    if not request.user.is_authenticated or not es_editor_logueado(request):
+        return redirect("editor_login")
+
     return render(request, "core/editor_page.html", {
         "site_config":            site_config,
         "site_config_json":       json.dumps(site_config, ensure_ascii=False),
@@ -423,7 +477,6 @@ def editor_resetear(request):
 
         config_reseteada = dict(CONFIG_DEFAULT)
         config_reseteada["template"] = template_activo
-        # Colores leídos del CSS — automático
         config_reseteada.update(_style_defaults(template_activo))
 
         guardar_config_archivo(config_reseteada)

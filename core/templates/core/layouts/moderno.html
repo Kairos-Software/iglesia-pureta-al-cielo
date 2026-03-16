@@ -1,84 +1,108 @@
 {% load static %}
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'core/css/templates/moderno.css' %}">
+<!DOCTYPE html>
+<html lang="es" data-template="moderno">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_config.org_name|default:"Moderno" }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'core/css/templates/moderno.css' %}">
+    <style>
+        :root {
+            --mn-offline-bg-image: url('https://via.placeholder.com/1920x1080/c9a84c/000000?text=OFFLINE+MODERNO');
+            /* Reemplazar con la variable real del editor cuando esté disponible:
+               --mn-offline-bg-image: {% if site_config.offline_bg_url %}'{{ site_config.offline_bg_url }}'{% else %}none{% endif %};
+            */
+        }
+    </style>
+</head>
+<body>
 
 {# Notices #}
-{% for ad in site_config.ads %}{% if ad.type == "notice" %}
-<div class="mn-notice" style="background:{{ ad.bg_color|default:'var(--mn-gold)' }}">
-    <div class="mn-notice-inner">
+{% for ad in site_config.ads %}
+{% if ad.type == "notice" %}
+<div class="mn-notice" style="background:{{ ad.bg_color|default:'#c9a84c' }}">
+    <div class="mn-wrap mn-notice-inner">
         <span class="material-symbols-outlined">campaign</span>
-        <span>{{ ad.title }}{% if ad.text %} — {{ ad.text }}{% endif %}</span>
-        <button onclick="this.closest('.mn-notice').remove()"><span class="material-symbols-outlined">close</span></button>
+        <span class="mn-notice-text">{{ ad.title }}{% if ad.text %} — {{ ad.text }}{% endif %}</span>
+        <button class="mn-notice-close" onclick="this.closest('.mn-notice').remove()">
+            <span class="material-symbols-outlined">close</span>
+        </button>
     </div>
 </div>
-{% endif %}{% endfor %}
+{% endif %}
+{% endfor %}
 
-{# ══ FLOATING NAV ══ #}
+{# ══ NAV FLOTANTE ══ #}
 <nav class="mn-nav" id="mnNav">
-    <div class="mn-nav-inner">
+    <div class="mn-nav-inner mn-wrap">
         <a href="#inicio" class="mn-nav-brand">
             {% if site_config.logo_url %}
-            <img src="{{ site_config.logo_url }}" alt="Logo" class="mn-nav-logo" id="mnNavLogo">
+                <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="mn-logo-img" id="navLogo">
             {% else %}
-            <img src="{% static 'core/img/logo.png' %}" alt="Logo" class="mn-nav-logo" id="mnNavLogo">
+                <img src="{% static 'core/img/kaircam-logo.png' %}" alt="Kaircam" class="mn-logo-img" id="navLogo">
             {% endif %}
         </a>
         <div class="mn-nav-links" id="mnNavLinks">
-            <a href="#inicio">Inicio</a>
-            <a href="#envivo">En Vivo</a>
-            <a href="#nosotros">Nosotros</a>
+            <a href="#inicio" class="mn-nav-link">Inicio</a>
+            <a href="#envivo" class="mn-nav-link">En Vivo</a>
+            <a href="#nosotros" class="mn-nav-link">Nosotros</a>
             {% for sec in site_config.dynamic_sections %}
-            <a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
+            <a href="#sec-{{ sec.id }}" class="mn-nav-link">{{ sec.nav_label|default:sec.title }}</a>
             {% endfor %}
-            {% if site_config.events %}<a href="#eventos">Eventos</a>{% endif %}
-            <a href="#contacto">Contacto</a>
+            {% if site_config.events %}
+            <a href="#eventos" class="mn-nav-link">Eventos</a>
+            {% endif %}
+            <a href="#contacto" class="mn-nav-link">Contacto</a>
         </div>
         <div class="mn-nav-actions">
-            <a href="https://kaircampanel.grupokairosarg.com" target="_blank" class="mn-nav-btn">
+            <a href="https://kaircampanel.grupokairosarg.com" target="_blank" class="mn-btn mn-btn-ghost">
                 <span class="material-symbols-outlined">cast</span>
             </a>
             {% if editor_logged_in %}
-            <a href="{% url 'editor_page' %}" class="mn-nav-btn mn-nav-btn--gold">
+            <a href="{% url 'editor_page' %}" class="mn-btn mn-btn-primary">
                 <span class="material-symbols-outlined">edit</span>
             </a>
-            <a href="{% url 'editor_logout' %}" class="mn-nav-btn">
+            <a href="{% url 'editor_logout' %}" class="mn-btn mn-btn-ghost">
                 <span class="material-symbols-outlined">logout</span>
             </a>
             {% else %}
-            <a href="{% url 'editor_login' %}" class="mn-nav-btn mn-nav-btn--gold">
+            <a href="{% url 'editor_login' %}" class="mn-btn mn-btn-primary">
                 <span class="material-symbols-outlined">lock</span>
             </a>
             {% endif %}
-            <button class="mn-burger" id="mnBurger">
+            <button class="mn-burger" id="navToggle">
                 <span></span><span></span>
             </button>
         </div>
     </div>
 </nav>
 
-{# Mobile drawer #}
+{# Drawer móvil #}
 <div class="mn-drawer-bg" id="mnDrawerBg"></div>
 <div class="mn-drawer" id="mnDrawer">
-    <a href="#inicio"   class="mn-drawer-a">Inicio</a>
-    <a href="#envivo"   class="mn-drawer-a">En Vivo</a>
-    <a href="#nosotros" class="mn-drawer-a">Nosotros</a>
+    <a href="#inicio" class="mn-drawer-link">Inicio</a>
+    <a href="#envivo" class="mn-drawer-link">En Vivo</a>
+    <a href="#nosotros" class="mn-drawer-link">Nosotros</a>
     {% for sec in site_config.dynamic_sections %}
-    <a href="#sec-{{ sec.id }}" class="mn-drawer-a">{{ sec.nav_label|default:sec.title }}</a>
+    <a href="#sec-{{ sec.id }}" class="mn-drawer-link">{{ sec.nav_label|default:sec.title }}</a>
     {% endfor %}
-    {% if site_config.events %}<a href="#eventos" class="mn-drawer-a">Eventos</a>{% endif %}
-    <a href="#contacto" class="mn-drawer-a">Contacto</a>
+    {% if site_config.events %}
+    <a href="#eventos" class="mn-drawer-link">Eventos</a>
+    {% endif %}
+    <a href="#contacto" class="mn-drawer-link">Contacto</a>
 </div>
 
-{# ══ HERO — pantalla completa, texto grande, sin sidebar ══ #}
+<div class="site-content">
+
+{# ══ HERO ══ #}
 <section class="mn-hero" id="inicio">
     {% if site_config.hero_bg_url %}
     <div class="mn-hero-bg" style="background-image:url('{{ site_config.hero_bg_url }}')"></div>
     {% endif %}
     <div class="mn-hero-overlay"></div>
-
-    <div class="mn-hero-body">
+    <div class="mn-wrap mn-hero-body">
         <p class="mn-overline" data-editable="hero_eyebrow">{{ site_config.hero_eyebrow|default:"Bienvenidos" }}</p>
         <h1 class="mn-hero-title" data-editable="hero_title">{{ site_config.hero_title|default:"Tu Organización" }}</h1>
         <p class="mn-hero-sub" data-editable="hero_subtitle">{{ site_config.hero_subtitle|default:"Conectamos personas, ideas y propósitos para crear un impacto positivo en la comunidad." }}</p>
@@ -87,111 +111,128 @@
             <span class="material-symbols-outlined">south</span>
         </a>
     </div>
-
-    {# Barra de stats pegada al fondo #}
     <div class="mn-hero-stats">
         <div class="mn-hstat">
             <strong data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</strong>
-            <span data-editable="stat1_label">{{ site_config.stat1_label|default:"Años de experiencia" }}</span>
+            <span data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
         </div>
         <div class="mn-hstat-div"></div>
         <div class="mn-hstat">
             <strong data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</strong>
-            <span data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros activos" }}</span>
+            <span data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
         </div>
         <div class="mn-hstat-div"></div>
         <div class="mn-hstat">
             <strong data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</strong>
-            <span data-editable="stat3_label">{{ site_config.stat3_label|default:"Países alcanzados" }}</span>
+            <span data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
         </div>
     </div>
 </section>
 
-{# Secciones dinámicas antes del player #}
+{# Secciones dinámicas before_player #}
 {% for section in site_config.dynamic_sections %}
 {% if section.position == "before_player" %}
 {% include "core/includes/dynamic_section.html" with sec=section %}
 {% endif %}
 {% endfor %}
 
-{# ══ LIVE — player a ancho completo, chat como panel flotante ══ #}
-<section class="mn-live" id="envivo">
-    <div class="mn-live-top">
-        <div class="mn-live-meta">
-            <span class="mn-live-badge {% if on_air %}mn-live-badge--on{% endif %}">
+{# ══ LIVE ══ #}
+<section class="mn-live" id="envivo" data-section="stream">
+    <div class="mn-wrap">
+        <div class="mn-live-header">
+            <div class="mn-live-badge {% if on_air %}on{% endif %}">
                 <span class="mn-live-dot"></span>
-                {% if on_air %}En Vivo{% else %}Offline{% endif %}
-            </span>
+                {% if on_air %}EN VIVO{% else %}OFFLINE{% endif %}
+            </div>
             <h2 class="mn-section-title" data-editable="live_title">{{ site_config.live_title|default:"Transmisión en Vivo" }}</h2>
-            <p class="mn-section-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Unite a nuestra comunidad en tiempo real" }}</p>
+            <p class="mn-section-sub" data-editable="live_subtitle">{{ site_config.live_subtitle|default:"Únete a nuestra comunidad en tiempo real" }}</p>
         </div>
-    </div>
-
-    <div class="mn-live-grid" id="streamContainer"
-         data-on-air="{{ on_air|yesno:'true,false' }}"
-         data-hls-url="{{ hls_url }}">
-        <div class="mn-player-wrap">
-            {% include "core/includes/player.html" %}
-        </div>
-        <div class="mn-chat-wrap">
-            {% include "core/includes/chat.html" %}
+        <div class="mn-live-grid" id="streamContainer"
+             data-on-air="{{ on_air|yesno:'true,false' }}"
+             data-hls-url="{{ hls_url }}">
+            <div class="mn-player-wrap">{% include "core/includes/player.html" %}</div>
+            <div class="mn-chat-wrap">{% include "core/includes/chat.html" %}</div>
         </div>
     </div>
 </section>
 
-{# Secciones dinámicas después del player #}
+{# Secciones dinámicas after_player #}
 {% for section in site_config.dynamic_sections %}
 {% if section.position == "after_player" %}
 {% include "core/includes/dynamic_section.html" with sec=section %}
 {% endif %}
 {% endfor %}
 
-{# ══ ABOUT — layout asimétrico 60/40, imagen con número grande decorativo ══ #}
+{# ══ ABOUT ══ #}
 <section class="mn-about" id="nosotros">
-    <div class="mn-about-num" aria-hidden="true">02</div>
-    <div class="mn-about-grid">
-        <div class="mn-about-img-col about-image-wrap">
+    <div class="mn-wrap mn-about-grid">
+        <div class="mn-about-image about-image-wrap">
             {% if site_config.about_img_url %}
-            <img src="{{ site_config.about_img_url }}" alt="Nosotros" class="mn-about-img about-img">
+            <img src="{{ site_config.about_img_url }}" alt="{{ site_config.org_name }}" class="mn-about-img about-img">
             {% else %}
             <div class="mn-about-placeholder">
                 <span class="material-symbols-outlined">groups</span>
             </div>
             {% endif %}
         </div>
-        <div class="mn-about-text-col">
+        <div class="mn-about-content">
             <p class="mn-overline" data-editable="about_eyebrow">{{ site_config.about_eyebrow|default:"Sobre Nosotros" }}</p>
             <h2 class="mn-about-title" data-editable="about_title">{{ site_config.about_title|default:"Quiénes Somos" }}</h2>
-            <p class="mn-about-body" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia y la innovación." }}</p>
-            <div class="mn-about-stats">
-                <div class="mn-astat">
-                    <strong data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</strong>
-                    <span data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
-                </div>
-                <div class="mn-astat">
-                    <strong data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</strong>
-                    <span data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
-                </div>
-                <div class="mn-astat">
-                    <strong data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</strong>
-                    <span data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
-                </div>
-            </div>
+            <p class="mn-about-text" data-editable="about_text">{{ site_config.about_text|default:"Somos una organización comprometida con la excelencia y la innovación." }}</p>
+        </div>
+    </div>
+    <div class="mn-about-stats">
+        <div class="mn-astat">
+            <strong data-editable="stat1_number">{{ site_config.stat1_number|default:"10+" }}</strong>
+            <span data-editable="stat1_label">{{ site_config.stat1_label|default:"Años" }}</span>
+        </div>
+        <div class="mn-astat">
+            <strong data-editable="stat2_number">{{ site_config.stat2_number|default:"500+" }}</strong>
+            <span data-editable="stat2_label">{{ site_config.stat2_label|default:"Miembros" }}</span>
+        </div>
+        <div class="mn-astat">
+            <strong data-editable="stat3_number">{{ site_config.stat3_number|default:"20+" }}</strong>
+            <span data-editable="stat3_label">{{ site_config.stat3_label|default:"Países" }}</span>
         </div>
     </div>
 </section>
 
 {# Banners #}
-{% for ad in site_config.ads %}{% if ad.type == "banner" %}{% if forloop.first %}<div class="mn-banners"><div class="mn-wrap">{% endif %}
-<a href="{{ ad.url|default:'#' }}" class="mn-banner" target="_blank"><img src="{{ ad.img_url }}" alt="{{ ad.alt|default:'' }}"></a>
-{% if forloop.last %}</div></div>{% endif %}{% endif %}{% endfor %}
+{% for ad in site_config.ads %}
+{% if ad.type == "banner" %}
+<div class="mn-banners">
+    <div class="mn-wrap">
+        <a href="{{ ad.url|default:'#' }}" class="mn-banner" target="_blank">
+            <img src="{{ ad.img_url }}" alt="{{ ad.alt|default:'Banner' }}">
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
 
 {# Sponsors #}
-{% for ad in site_config.ads %}{% if ad.type == "sponsor" %}{% if forloop.first %}<div class="mn-sponsors"><div class="mn-wrap"><p class="mn-sponsors-lbl">Con el apoyo de</p><div class="mn-sponsors-row">{% endif %}
-<a href="{{ ad.url|default:'#' }}" class="mn-sponsor" target="_blank">{% if ad.logo_url %}<img src="{{ ad.logo_url }}" alt="{{ ad.name }}">{% else %}<span>{{ ad.name }}</span>{% endif %}</a>
-{% if forloop.last %}</div></div></div>{% endif %}{% endif %}{% endfor %}
+{% if site_config.ads|length > 0 %}
+<div class="mn-sponsors">
+    <div class="mn-wrap">
+        <p class="mn-sponsors-label">Con el apoyo de</p>
+        <div class="mn-sponsors-grid">
+            {% for ad in site_config.ads %}
+            {% if ad.type == "sponsor" %}
+            <a href="{{ ad.url|default:'#' }}" class="mn-sponsor" target="_blank">
+                {% if ad.logo_url %}
+                <img src="{{ ad.logo_url }}" alt="{{ ad.name }}">
+                {% else %}
+                <span>{{ ad.name }}</span>
+                {% endif %}
+            </a>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
-{# Secciones dinámicas antes de contacto #}
+{# Secciones dinámicas before_contact #}
 {% for section in site_config.dynamic_sections %}
 {% if section.position == "before_contact" or not section.position %}
 {% include "core/includes/dynamic_section.html" with sec=section %}
@@ -202,39 +243,41 @@
 {% if site_config.events %}
 <section class="mn-events" id="eventos">
     <div class="mn-wrap">
-        <p class="mn-overline">Agenda</p>
         <h2 class="mn-section-title">Próximos Eventos</h2>
         <div class="mn-events-list">
             {% for ev in site_config.events %}
-            <div class="mn-event">
-                {% if ev.img_url %}<div class="mn-event-img" style="background-image:url('{{ ev.img_url }}')"></div>{% endif %}
-                <div class="mn-event-date">
-                    {% if ev.date %}
-                    <span class="mn-event-day">{{ ev.date|date:"d" }}</span>
-                    <span class="mn-event-month">{{ ev.date|date:"M"|upper }}</span>
-                    {% endif %}
-                </div>
-                <div class="mn-event-body">
+            <article class="mn-event">
+                {% if ev.img_url %}
+                <div class="mn-event-img" style="background-image:url('{{ ev.img_url }}')"></div>
+                {% endif %}
+                <div class="mn-event-content">
+                    <div class="mn-event-date">
+                        {% if ev.date %}
+                        <span class="mn-event-day">{{ ev.date|date:"d" }}</span>
+                        <span class="mn-event-month">{{ ev.date|date:"M"|upper }}</span>
+                        {% endif %}
+                    </div>
                     <h3 class="mn-event-title">{{ ev.name }}</h3>
                     {% if ev.desc %}<p class="mn-event-desc">{{ ev.desc }}</p>{% endif %}
                     <div class="mn-event-meta">
                         {% if ev.time %}<span><span class="material-symbols-outlined">schedule</span>{{ ev.time }}</span>{% endif %}
                         {% if ev.place %}<span><span class="material-symbols-outlined">location_on</span>{{ ev.place }}</span>{% endif %}
                     </div>
-                    {% if ev.has_btn and ev.btn_url %}<a href="{{ ev.btn_url }}" class="mn-event-btn" target="_blank">{{ ev.btn_text|default:"Inscribirse" }}</a>{% endif %}
+                    {% if ev.has_btn and ev.btn_url %}
+                    <a href="{{ ev.btn_url }}" class="mn-event-btn" target="_blank">{{ ev.btn_text|default:"Inscribirse" }}</a>
+                    {% endif %}
                 </div>
-            </div>
+            </article>
             {% endfor %}
         </div>
     </div>
 </section>
 {% endif %}
 
-{# ══ CONTACT — fondo oscuro, layout horizontal ══ #}
-<section class="mn-contact" id="contacto">
-    <div class="mn-about-num mn-about-num--light" aria-hidden="true">03</div>
+{# ══ CONTACTO ══ #}
+<section class="mn-contact" id="contacto" data-section="contact">
     <div class="mn-wrap">
-        <p class="mn-overline mn-overline--light" data-editable="contact_title">{{ site_config.contact_title|default:"Contacto" }}</p>
+        <p class="mn-overline mn-overline-light" data-editable="contact_title">{{ site_config.contact_title|default:"Contacto" }}</p>
         <h2 class="mn-contact-title">Hablemos</h2>
         <div class="mn-contact-grid">
             <div class="mn-contact-item">
@@ -262,39 +305,45 @@
     </div>
 </section>
 
+</div> <!-- site-content -->
+
 {# ══ FOOTER ══ #}
 <footer class="mn-footer" id="siteFooter">
     <div class="mn-wrap mn-footer-inner">
         <div class="mn-footer-brand">
-            {% if site_config.logo_url %}<img src="{{ site_config.logo_url }}" alt="Logo" class="mn-footer-logo">{% endif %}
+            {% if site_config.logo_url %}
+                <img src="{{ site_config.logo_url }}" alt="{{ site_config.org_name }}" class="mn-footer-logo">
+            {% else %}
+                <img src="{% static 'core/img/kaircam-logo.png' %}" alt="Kaircam" class="mn-footer-logo">
+            {% endif %}
             <span class="mn-footer-name footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>
-            <span class="mn-footer-tag footer-slogan">{{ site_config.footer_tagline|default:site_config.org_slogan|default:"" }}</span>
-            {% if site_config.footer_email %}<a href="mailto:{{ site_config.footer_email }}" class="mn-footer-email">{{ site_config.footer_email }}</a>{% endif %}
+            {% if site_config.footer_tagline %}
+            <span class="mn-footer-tagline">{{ site_config.footer_tagline }}</span>
+            {% endif %}
         </div>
         <nav class="mn-footer-nav">
-            <a href="#inicio">Inicio</a><a href="#envivo">En Vivo</a><a href="#nosotros">Nosotros</a>
-            {% for sec in site_config.dynamic_sections %}<a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>{% endfor %}
+            <a href="#inicio">Inicio</a>
+            <a href="#envivo">En Vivo</a>
+            <a href="#nosotros">Nosotros</a>
+            {% for sec in site_config.dynamic_sections %}
+            <a href="#sec-{{ sec.id }}">{{ sec.nav_label|default:sec.title }}</a>
+            {% endfor %}
             {% if site_config.events %}<a href="#eventos">Eventos</a>{% endif %}
             <a href="#contacto">Contacto</a>
-            {% for lnk in site_config.footer_links %}{% if lnk.label and lnk.url %}<a href="{{ lnk.url }}" target="_blank">{{ lnk.label }}</a>{% endif %}{% endfor %}
+            {% for lnk in site_config.footer_links %}
+            <a href="{{ lnk.url }}" target="_blank">{{ lnk.label }}</a>
+            {% endfor %}
         </nav>
-        {% if site_config.footer_show_social != False %}
         <div class="mn-footer-social">
             {% if site_config.social_instagram %}<a href="{{ site_config.social_instagram }}" target="_blank"><span class="material-symbols-outlined">photo_camera</span></a>{% endif %}
             {% if site_config.social_youtube %}<a href="{{ site_config.social_youtube }}" target="_blank"><span class="material-symbols-outlined">smart_display</span></a>{% endif %}
             {% if site_config.social_facebook %}<a href="{{ site_config.social_facebook }}" target="_blank"><span class="material-symbols-outlined">thumb_up</span></a>{% endif %}
             {% if site_config.social_tiktok %}<a href="{{ site_config.social_tiktok }}" target="_blank"><span class="material-symbols-outlined">music_note</span></a>{% endif %}
         </div>
-        {% endif %}
     </div>
     <div class="mn-footer-bottom">
-        <div class="mn-wrap mn-footer-bottom-inner">
-            {% if site_config.footer_copyright %}
-            <p>{{ site_config.footer_copyright }}</p>
-            {% else %}
-            <p>© {% now "Y" %} <span class="footer-org-name">{{ site_config.org_name|default:"Mi Organización" }}</span>. Todos los derechos reservados.</p>
-            {% endif %}
-            <span class="mn-footer-sig">Kaircam Platform</span>
+        <div class="mn-wrap">
+            <p>{% if site_config.footer_copyright %}{{ site_config.footer_copyright }}{% else %}© {% now "Y" %} {{ site_config.org_name|default:"Mi Organización" }}. Todos los derechos reservados.{% endif %}</p>
         </div>
     </div>
 </footer>
@@ -302,7 +351,6 @@
 {# Modal chat #}
 <div id="modalNombre" class="mn-modal-bg oculto">
     <div class="mn-modal">
-        <div class="mn-modal-line"></div>
         <h3>¿Cómo te llamás?</h3>
         <p>Ingresá tu nombre para participar en el chat en vivo</p>
         <input type="text" id="nombreUsuarioInput" placeholder="Tu nombre">
@@ -311,3 +359,5 @@
 </div>
 
 <script src="{% static 'core/js/templates/moderno.js' %}"></script>
+</body>
+</html>
