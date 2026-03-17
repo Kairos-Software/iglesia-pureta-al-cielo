@@ -1,0 +1,25 @@
+# Entorno virtual
+venv/
+entorno/
+
+# Variables de entorno - NUNCA al repo
+.env.local
+.env.production
+
+# Personalización del cliente - NUNCA al repo
+site_data/
+media/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+staticfiles/
+django.log
+*.log
+
+# IDE
+.vscode/
+.idea/
