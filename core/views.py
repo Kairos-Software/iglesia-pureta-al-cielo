@@ -186,10 +186,38 @@ def es_editor_logueado(request):
     return request.session.get("editor_logged_in", False)
 
 
-def get_stream_context():
-    usuario = settings.IGLESIA_USER
-    stream  = CanalTransmision.objects.filter(usuario__username=usuario).first()
-    hls_url = f"{settings.HLS_BASE_URL}/{settings.HLS_PROGRAM_PATH}/{usuario}.m3u8"
+# ══════════════════════════════════════════════════════
+# RESOLUCIÓN DE USUARIO DUEÑO DE ESTA INSTANCIA
+# ══════════════════════════════════════════════════════
+
+def get_owner_user(request):
+    """
+    Resuelve qué User es el dueño de esta instancia del proyecto público.
+
+    - En desarrollo (DEBUG=True): usa IGLESIA_USER del .env como fallback,
+      igual que antes. No rompe nada en local.
+    - En producción: lee el dominio del request y busca en la DB qué
+      Cliente tiene ese dominio registrado. Si no encuentra ninguno,
+      devuelve None.
+    """
+    if settings.DEBUG:
+        username = getattr(settings, "IGLESIA_USER", None)
+        if not username:
+            return None
+        return User.objects.filter(username=username).first()
+
+    # Producción: resolver por dominio
+    host = request.get_host().split(":")[0].lower()
+    cliente = Cliente.objects.filter(dominio=host).select_related("user").first()
+    return cliente.user if cliente else None
+
+
+def get_stream_context(request):
+    user = get_owner_user(request)
+    if not user:
+        return {"stream": None, "on_air": False, "hls_url": ""}
+    stream  = CanalTransmision.objects.filter(usuario=user).first()
+    hls_url = f"{settings.HLS_BASE_URL}/{settings.HLS_PROGRAM_PATH}/{user.username}.m3u8"
     return {
         "stream":  stream,
         "on_air":  stream.en_vivo if stream else False,
@@ -229,21 +257,14 @@ def listar_plantillas():
 
 def home(request):
     site_config = cargar_config()
-    
-    # Obtener el cliente asociado al usuario de la página
-    try:
-        user = User.objects.get(username=settings.IGLESIA_USER)
-        cliente = Cliente.objects.get(user=user)
-    except User.DoesNotExist:
-        cliente = None
-    except Cliente.DoesNotExist:
-        # Si no existe el cliente, lo creamos con valores por defecto
-        cliente = Cliente.objects.create(
-            user=user,
-            nombre=user.first_name or user.username,
-            apellido=user.last_name or '',
-            bio=''
-        )
+
+    user = get_owner_user(request)
+    cliente = None
+    if user:
+        try:
+            cliente = Cliente.objects.get(user=user)
+        except Cliente.DoesNotExist:
+            pass
 
     response = render(request, "core/home.html", {
         "site_config":      site_config,
@@ -251,7 +272,7 @@ def home(request):
         "editor_logged_in": es_editor_logueado(request),
         "plantillas":       listar_plantillas(),
         "cliente":          cliente,
-        **get_stream_context(),
+        **get_stream_context(request),
     })
     response["X-Frame-Options"] = "SAMEORIGIN"
     return response
@@ -263,7 +284,8 @@ mensajes_chat = []
 @csrf_exempt
 def enviar_mensaje(request):
     global mensajes_chat
-    stream = CanalTransmision.objects.filter(usuario__username=settings.IGLESIA_USER).first()
+    user = get_owner_user(request)
+    stream = CanalTransmision.objects.filter(usuario=user).first() if user else None
     if not stream or not stream.en_vivo:
         mensajes_chat = []
         return JsonResponse({"activo": False, "mensajes": []})
@@ -277,7 +299,8 @@ def enviar_mensaje(request):
 
 def obtener_mensajes(request):
     global mensajes_chat
-    stream = CanalTransmision.objects.filter(usuario__username=settings.IGLESIA_USER).first()
+    user = get_owner_user(request)
+    stream = CanalTransmision.objects.filter(usuario=user).first() if user else None
     if not stream or not stream.en_vivo:
         mensajes_chat = []
         return JsonResponse({"activo": False, "mensajes": []})
@@ -287,21 +310,21 @@ def obtener_mensajes(request):
 def editor_login(request):
     site_config = cargar_config()
     maintenance_mode = site_config.get('maintenance_mode', False)
-    
-    # Obtener el cliente para saber si está activo
-    try:
-        user_owner = User.objects.get(username=settings.IGLESIA_USER)
-        cliente = Cliente.objects.get(user=user_owner)
-        cliente_inactivo = not cliente.activo
-    except (User.DoesNotExist, Cliente.DoesNotExist):
-        cliente_inactivo = False  # Si no existe, asumimos activo
 
-    # El sitio está en "modo restringido" si el cliente está inactivo O el modo mantenimiento manual está activo
+    # Resolver el usuario dueño de esta instancia
+    user_owner = get_owner_user(request)
+    cliente_inactivo = False
+    if user_owner:
+        try:
+            cliente = Cliente.objects.get(user=user_owner)
+            cliente_inactivo = not cliente.activo
+        except Cliente.DoesNotExist:
+            pass
+
     modo_restringido = maintenance_mode or cliente_inactivo
 
     error = None
 
-    # Si ya está autenticado y es superusuario, redirigir a home
     if request.user.is_authenticated:
         if request.user.is_superuser:
             return redirect("home")
@@ -314,10 +337,10 @@ def editor_login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # Si el sitio está restringido, solo superusuarios pueden acceder
             if modo_restringido and not user.is_superuser:
                 error = "El sitio está en mantenimiento. Solo administradores pueden acceder."
-            elif user.is_superuser or username == settings.IGLESIA_USER:
+            elif user.is_superuser or (user_owner and user.pk == user_owner.pk):
+                # Solo entra si es superusuario O si es exactamente el dueño de esta instancia
                 auth_login(request, user)
                 request.session["editor_logged_in"] = True
                 request.session["editor_username"] = username
@@ -328,13 +351,11 @@ def editor_login(request):
         else:
             error = "Contraseña incorrecta."
 
-        # Si hay error, renderizar login con mensaje
         return render(request, "core/login.html", {
             "error": error,
             "site_name": site_config.get("org_name"),
         })
 
-    # GET: mostrar formulario, con mensaje si el sitio está restringido
     if modo_restringido:
         error = "El sitio está en mantenimiento. Solo administradores pueden acceder."
 
@@ -355,7 +376,6 @@ def editor_page(request):
     site_config = cargar_config()
     maintenance_mode = site_config.get('maintenance_mode', False)
 
-    # Si el modo mantenimiento está activo y el usuario no es superusuario, cerrar sesión y redirigir al login
     if maintenance_mode and not request.user.is_superuser:
         logout(request)
         request.session.pop("editor_logged_in", None)
@@ -365,7 +385,6 @@ def editor_page(request):
             "site_name": site_config.get("org_name"),
         })
 
-    # Si no está autenticado, redirigir al login
     if not request.user.is_authenticated or not es_editor_logueado(request):
         return redirect("editor_login")
 
