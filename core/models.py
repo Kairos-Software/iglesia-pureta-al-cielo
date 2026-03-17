@@ -22,6 +22,7 @@ class Cliente(models.Model):
     apellido = models.CharField(max_length=100)
     bio = models.TextField(blank=True, null=True)
     activo = models.BooleanField(default=True)
+    dominio = models.CharField(max_length=253, blank=True, null=True)  # ← agregar esto
 
     class Meta:
         managed = False
