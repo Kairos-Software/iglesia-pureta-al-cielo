@@ -589,7 +589,7 @@ body {
     background-color: #000;
 }
 .kc-player-box video {
-    filter: brightness(0.7) blur(2px);
+    filter: none;
     transition: filter 0.3s;
 }
 .kc-player-box .play-overlay {
@@ -609,7 +609,7 @@ body {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.3); /* Fondo claro para que la imagen se vea nítida */
-    backdrop-filter: blur(4px);
+    backdrop-filter: none;
     display: flex;
     flex-direction: column;
     align-items: center;

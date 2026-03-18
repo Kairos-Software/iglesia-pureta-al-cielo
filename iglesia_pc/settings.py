@@ -21,20 +21,17 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1").split(",")
 # Configuración CSRF y seguridad para HTTPS (producción)
 # ─────────────────────────────────────────────────────────
 if not DEBUG:
-    # Solo en producción (HTTPS)
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
-    # Para permitir que JavaScript acceda a la cookie (necesario si usas fetch con X-CSRFToken)
     CSRF_COOKIE_HTTPONLY = False
-    # Orígenes confiables para CSRF (dominios desde los que se aceptan peticiones POST)
+    # Se construye automáticamente desde ALLOWED_HOSTS — no hay que tocarlo por cliente
     CSRF_TRUSTED_ORIGINS = [
-        'https://puertaalcielo.grupokairosarg.com',
+        f'https://{host}' for host in ALLOWED_HOSTS
+        if host not in ('127.0.0.1', 'localhost', '')
     ]
-    # Si usas proxy inverso, necesario para que Django detecte HTTPS correctamente
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     USE_X_FORWARDED_HOST = True
 else:
-    # Desarrollo local
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
     CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
@@ -121,7 +118,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Usuario de iglesia
+# Usuario fallback para desarrollo local
 IGLESIA_USER = os.getenv("IGLESIA_USER", "ipc")
 
 # Configuración HLS

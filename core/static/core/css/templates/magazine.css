@@ -391,7 +391,7 @@ body {
   height: 100%;
   display: block;
   object-fit: cover;
-  filter: brightness(0.8) blur(2px);
+  filter: none;
 }
 .mg-player .player-status-bar {
   position: absolute;

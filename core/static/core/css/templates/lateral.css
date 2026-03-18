@@ -311,6 +311,7 @@ body {
 .lt-hero-badge .material-symbols-outlined { font-size: 13px; color: var(--lt-green); }
 
 .lt-hero-title {
+    font-family: var(--lt-fd);
     font-size: clamp(1.8rem, 3.5vw, 3.2rem);
     font-weight: 700;
     color: var(--lt-text);
@@ -382,6 +383,7 @@ body {
     background: var(--lt-green); padding: .25rem .6rem;
 }
 .lt-section-title {
+    font-family: var(--lt-fd);
     font-size: 1rem; font-weight: 700; color: var(--lt-text);
     letter-spacing: -.01em;
     flex: 1;
@@ -568,6 +570,7 @@ body {
     text-transform: uppercase; color: var(--lt-green); margin-bottom: .5rem; display: block;
 }
 .lt-about-title {
+    font-family: var(--lt-fd);
     font-size: 1.3rem; font-weight: 700; color: var(--lt-text);
     line-height: 1.2; letter-spacing: -.015em; margin-bottom: .75rem;
 }

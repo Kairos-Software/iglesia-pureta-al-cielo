@@ -159,6 +159,8 @@ def cargar_config():
             with open(CONFIG_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 merged = {**CONFIG_DEFAULT, **data}
+        else:
+            merged = dict(CONFIG_DEFAULT)
     except (json.JSONDecodeError, OSError):
         merged = dict(CONFIG_DEFAULT)
 
