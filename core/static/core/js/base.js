@@ -1,13 +1,12 @@
 /* ═══════════════════════════════════════════════════════
    BASE.JS — HLS Player + Chat + Nav + postMessage editor
+   Versión con manejo mejorado de estados (offline, carga, modo radio)
 ═══════════════════════════════════════════════════════ */
 
 document.addEventListener("DOMContentLoaded", () => {
 
     // ══════════════════════════════════════
     // APLICAR CONFIG EN PÁGINA PÚBLICA
-    // base.html ya inyecta variables base en :root via <style>.
-    // Aquí refinamos bg2/bg3/muted con JS para las variantes derivadas.
     // ══════════════════════════════════════
     const configScript = document.querySelector('script[id="epConfigData"], script[data-site-config]');
     if (configScript && window.parent === window) {
@@ -29,64 +28,157 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ══════════════════════════════════════
-    // HLS PLAYER
+    // HLS PLAYER CON ESTADOS MEJORADOS
     // ══════════════════════════════════════
     const streamContainer = document.getElementById("streamContainer");
     const video           = document.getElementById("videoPlayer");
+    const playOverlay     = document.getElementById("playOverlay");
+    const loadingOverlay  = document.getElementById("loadingOverlay");
+    const offlineOverlay  = document.getElementById("offlineOverlay");
 
     if (streamContainer && video) {
         const enVivo = streamContainer.dataset.onAir === "true";
         const urlHls = streamContainer.dataset.hlsUrl;
         let hls = null;
+        let userRequestedPlay = false;      // indica si el usuario ya hizo clic en play
+        let isStreamReady = false;           // indica si el manifest se cargó correctamente
+
+        // Funciones para mostrar/ocultar overlays
+        function showLoading() {
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+            if (playOverlay) playOverlay.style.display = 'none';
+            if (offlineOverlay) offlineOverlay.style.display = 'none';
+        }
+        function hideLoading() {
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
+        }
+        function showPlayOverlay() {
+            if (playOverlay && !userRequestedPlay && enVivo) {
+                playOverlay.style.display = 'flex';
+            }
+            hideLoading();
+        }
+        function showOffline() {
+            if (offlineOverlay) offlineOverlay.style.display = 'flex';
+            if (playOverlay) playOverlay.style.display = 'none';
+            hideLoading();
+        }
+        function hideAllOverlays() {
+            if (playOverlay) playOverlay.style.display = 'none';
+            if (offlineOverlay) offlineOverlay.style.display = 'none';
+            hideLoading();
+        }
+
+        // Inicialmente, si no hay stream, mostramos offline
+        if (!enVivo) {
+            showOffline();
+            return;
+        }
+
+        // Si hay stream, mostramos carga mientras intentamos conectar
+        showLoading();
 
         function iniciarHls() {
             if (!enVivo || !urlHls) return;
+
             if (typeof Hls !== "undefined" && Hls.isSupported()) {
                 hls = new Hls({
-                    enableWorker: true, lowLatencyMode: true,
-                    liveSyncDurationCount: 3, liveMaxLatencyDurationCount: 10,
-                    maxBufferLength: 30, maxMaxBufferLength: 60,
-                    manifestLoadingMaxRetry: 5, manifestLoadingRetryDelay: 1000,
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    liveSyncDurationCount: 3,
+                    liveMaxLatencyDurationCount: 10,
+                    maxBufferLength: 30,
+                    maxMaxBufferLength: 60,
+                    manifestLoadingMaxRetry: 5,
+                    manifestLoadingRetryDelay: 1000,
                 });
+
                 hls.loadSource(urlHls);
                 hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    console.log("Manifest cargado, stream listo");
+                    isStreamReady = true;
+                    hideLoading();
+
+                    if (userRequestedPlay) {
+                        video.play().catch(e => {
+                            console.warn("Error al reproducir:", e);
+                            showPlayOverlay();
+                        });
+                    } else {
+                        showPlayOverlay();
+                    }
+                });
+
                 hls.on(Hls.Events.ERROR, (_, data) => {
                     if (!data.fatal) return;
-                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-                    else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-                    else { hls.destroy(); iniciarHls(); }
+
+                    console.error("Error HLS fatal:", data.type);
+                    if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                        hls.startLoad();
+                    } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+                        hls.recoverMediaError();
+                    } else {
+                        hls.destroy();
+                        hls = null;
+                        showOffline();
+                    }
                 });
             } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+                // Safari nativo
                 video.src = urlHls;
-                video.addEventListener("loadedmetadata", () => video.play());
+                video.addEventListener("loadedmetadata", () => {
+                    isStreamReady = true;
+                    hideLoading();
+                    if (userRequestedPlay) {
+                        video.play().catch(() => showPlayOverlay());
+                    } else {
+                        showPlayOverlay();
+                    }
+                });
+                video.addEventListener("error", () => showOffline());
+            } else {
+                console.error("HLS no soportado");
+                showOffline();
             }
         }
 
         iniciarHls();
+
+        // Manejar clic en botón play
+        if (playOverlay && document.getElementById("playBtn")) {
+            document.getElementById("playBtn").addEventListener("click", () => {
+                userRequestedPlay = true;
+                hideAllOverlays();
+                if (isStreamReady && hls) {
+                    video.play().catch(e => {
+                        console.warn("Error al reproducir:", e);
+                        showPlayOverlay();
+                    });
+                } else {
+                    showLoading();
+                }
+            });
+        }
+
+        video.addEventListener("play", () => hideAllOverlays());
+        video.addEventListener("pause", () => {
+            if (enVivo && !video.ended && !video.seeking) {
+                showPlayOverlay();
+            }
+        });
 
         video.addEventListener("loadedmetadata", () => {
             video.classList.toggle("video-vertical",   video.videoHeight > video.videoWidth);
             video.classList.toggle("video-horizontal", video.videoHeight <= video.videoWidth);
         });
 
-        const playOverlay = document.getElementById("playOverlay");
-        const playBtn     = document.getElementById("playBtn");
-        if (playOverlay && playBtn) {
-            video.addEventListener("play",  () => playOverlay.classList.add("hidden"));
-            video.addEventListener("pause", () => playOverlay.classList.remove("hidden"));
-            playBtn.addEventListener("click", () => video.play().catch(() => {}));
-            playOverlay.addEventListener("click", e => {
-                if (e.target === playOverlay || e.target.closest("#playBtn"))
-                    video.play().catch(() => {});
-            });
-        }
-
         window.addEventListener("beforeunload", () => { if (hls) { hls.destroy(); hls = null; } });
     }
 
     // ══════════════════════════════════════
-    // CHAT
+    // CHAT (sin cambios)
     // ══════════════════════════════════════
     const chatMessages = document.getElementById("chatMessages");
     const chatInput    = document.getElementById("chatInput");
@@ -176,9 +268,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-/* ═══════════════════════════════════════════════════════
-   POSTMESSAGE — Recibe mensajes del editor (iframe mode)
-═══════════════════════════════════════════════════════ */
+// ==================== HELPERS (mantener) ====================
+function hexToRgba(hex, a) {
+    try { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
+    catch { return `rgba(0,0,0,${a})`; }
+}
+function adjustBrightness(hex, amt) {
+    try {
+        const c=n=>Math.min(255,Math.max(0,n));
+        const r=c(parseInt(hex.slice(1,3),16)+amt), g=c(parseInt(hex.slice(3,5),16)+amt), b=c(parseInt(hex.slice(5,7),16)+amt);
+        return `#${r.toString(16).padStart(2,"0")}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`;
+    } catch { return hex; }
+}
+function loadGoogleFont(name) {
+    const id=`gf-${name.replace(/\s/g,"-")}`;
+    if (document.getElementById(id)) return;
+    const l=document.createElement("link"); l.id=id; l.rel="stylesheet";
+    l.href=`https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@400;600;700&display=swap`;
+    document.head.appendChild(l);
+}
+function getCookie(name) {
+    let v=null;
+    document.cookie.split(";").forEach(c=>{ c=c.trim(); if(c.startsWith(name+"=")) v=decodeURIComponent(c.slice(name.length+1)); });
+    return v;
+}
+
+// ==================== POSTMESSAGE PARA EDITOR (mantener) ====================
 window.addEventListener("message", event => {
     const { type, payload } = event.data || {};
     if (!type) return;
@@ -215,10 +330,7 @@ function applyFullConfig(cfg) {
 }
 
 function applyField(key, value) {
-    // Si se actualiza el nombre de la organización, cambiar el título de la pestaña
-    if (key === 'org_name') {
-        document.title = value;
-    }
+    if (key === 'org_name') document.title = value;
 
     const textMap = {
         org_name:         ["#headerOrgName", ".footer-org-name"],
@@ -301,7 +413,6 @@ function applyField(key, value) {
     if (sels) sels.forEach(sel => document.querySelectorAll(sel).forEach(el => { el.textContent = value; }));
 }
 
-/* ── Secciones dinámicas DOM ── */
 function addSectionToDOM(sec) {
     if (document.getElementById(`sec-${sec.id}`)) return;
     const el = document.createElement("section");
@@ -398,29 +509,4 @@ function updateCardInDOM(secId, idx, field, value) {
     if (!card) return;
     const m = { title:".ds-card-title", text:".ds-card-text", icon:".ds-card-icon" };
     if (m[field]) { const el=card.querySelector(m[field]); if(el) el.textContent=value; }
-}
-
-/* ── Helpers ── */
-function hexToRgba(hex, a) {
-    try { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
-    catch { return `rgba(0,0,0,${a})`; }
-}
-function adjustBrightness(hex, amt) {
-    try {
-        const c=n=>Math.min(255,Math.max(0,n));
-        const r=c(parseInt(hex.slice(1,3),16)+amt), g=c(parseInt(hex.slice(3,5),16)+amt), b=c(parseInt(hex.slice(5,7),16)+amt);
-        return `#${r.toString(16).padStart(2,"0")}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`;
-    } catch { return hex; }
-}
-function loadGoogleFont(name) {
-    const id=`gf-${name.replace(/\s/g,"-")}`;
-    if (document.getElementById(id)) return;
-    const l=document.createElement("link"); l.id=id; l.rel="stylesheet";
-    l.href=`https://fonts.googleapis.com/css2?family=${encodeURIComponent(name)}:wght@400;600;700&display=swap`;
-    document.head.appendChild(l);
-}
-function getCookie(name) {
-    let v=null;
-    document.cookie.split(";").forEach(c=>{ c=c.trim(); if(c.startsWith(name+"=")) v=decodeURIComponent(c.slice(name.length+1)); });
-    return v;
 }

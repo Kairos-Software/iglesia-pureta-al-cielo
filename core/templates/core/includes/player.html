@@ -6,30 +6,28 @@
         <span>{% if on_air %}EN VIVO{% else %}FUERA DE LÍNEA{% endif %}</span>
     </div>
 
-    <!-- Video -->
-    <video id="videoPlayer" class="video-player" controls playsinline preload="none"
-           {% if site_config.player_poster_url %}
-                poster="{{ site_config.player_poster_url }}"
-           {% else %}
-                poster="{% static 'core/img/kaircam-logo.png' %}"
-           {% endif %}></video>
+    <!-- Contenedor del video y overlays -->
+    <div class="video-container" id="videoContainer">
+        <video id="videoPlayer" class="video-player" controls playsinline preload="none"></video>
 
-    <!-- Overlay de reproducción (solo si está en vivo) -->
-    {% if on_air %}
-    <div class="play-overlay" id="playOverlay">
-        <button class="play-btn" id="playBtn">
-            <span class="material-symbols-outlined">play_arrow</span>
-        </button>
-        <p>Presioná para conectar</p>
-    </div>
-    {% endif %}
+        {% if not on_air %}
+        <div class="offline-overlay" id="offlineOverlay">
+            <span class="material-symbols-outlined">wifi_off</span>
+            <p>Sin señal</p>
+            <small>La transmisión no está disponible</small>
+        </div>
+        {% endif %}
 
-    <!-- Overlay de offline (solo si no está en vivo) -->
-    {% if not on_air %}
-    <div class="offline-overlay">
-        <span class="material-symbols-outlined">wifi_off</span>
-        <p>Sin señal</p>
-        <small>La transmisión no está disponible</small>
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="spinner"></div>
+            <p>Cargando transmisión...</p>
+        </div>
+
+        <div class="play-overlay" id="playOverlay" style="display: none;">
+            <button class="play-btn" id="playBtn">
+                <span class="material-symbols-outlined">play_arrow</span>
+            </button>
+            <p>Presioná para conectar</p>
+        </div>
     </div>
-    {% endif %}
 </div>
