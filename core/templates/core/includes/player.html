@@ -1,14 +1,18 @@
 {% load static %}
 <div class="player-card" id="playerCard">
-    <!-- Barra de estado -->
     <div class="player-status-bar {% if on_air %}live{% endif %}">
         <span class="status-dot {% if on_air %}live{% endif %}"></span>
         <span>{% if on_air %}EN VIVO{% else %}FUERA DE LÍNEA{% endif %}</span>
     </div>
 
-    <!-- Contenedor del video y overlays -->
     <div class="video-container" id="videoContainer">
-        <video id="videoPlayer" class="video-player" controls playsinline preload="none"></video>
+        <video id="videoPlayer" class="video-player" controls playsinline preload="none"
+               {% if site_config.player_poster_url %}
+               poster="{{ site_config.player_poster_url }}"
+               {% else %}
+               poster="{% static 'core/img/kaircam-logo.png' %}"
+               {% endif %}
+        ></video>
 
         {% if not on_air %}
         <div class="offline-overlay" id="offlineOverlay">

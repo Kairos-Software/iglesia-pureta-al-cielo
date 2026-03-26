@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════
    BASE.JS — HLS Player + Chat + Nav + postMessage editor
-   Versión con manejo mejorado de estados (offline, carga, modo radio)
+   Versión con polling de estado + manejo robusto de modo radio
 ═══════════════════════════════════════════════════════ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ══════════════════════════════════════
-    // HLS PLAYER CON ESTADOS MEJORADOS
+    // HLS PLAYER CON ESTADOS MEJORADOS Y POLLING
     // ══════════════════════════════════════
     const streamContainer = document.getElementById("streamContainer");
     const video           = document.getElementById("videoPlayer");
@@ -37,8 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const offlineOverlay  = document.getElementById("offlineOverlay");
 
     if (streamContainer && video) {
-        const enVivo = streamContainer.dataset.onAir === "true";
-        const urlHls = streamContainer.dataset.hlsUrl;
+        let enVivo = streamContainer.dataset.onAir === "true";
+        let urlHls = streamContainer.dataset.hlsUrl;
         let hls = null;
         let userRequestedPlay = false;      // indica si el usuario ya hizo clic en play
         let isStreamReady = false;           // indica si el manifest se cargó correctamente
@@ -69,17 +69,28 @@ document.addEventListener("DOMContentLoaded", () => {
             hideLoading();
         }
 
-        // Inicialmente, si no hay stream, mostramos offline
-        if (!enVivo) {
-            showOffline();
-            return;
+        // Destruir HLS y limpiar
+        function destroyHls() {
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+            isStreamReady = false;
+            userRequestedPlay = false;
         }
 
-        // Si hay stream, mostramos carga mientras intentamos conectar
-        showLoading();
-
+        // Iniciar HLS con una URL
         function iniciarHls() {
-            if (!enVivo || !urlHls) return;
+            if (!enVivo || !urlHls) {
+                showOffline();
+                return;
+            }
+
+            destroyHls();
+            showLoading();
 
             if (typeof Hls !== "undefined" && Hls.isSupported()) {
                 hls = new Hls({
@@ -120,8 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
                         hls.recoverMediaError();
                     } else {
-                        hls.destroy();
-                        hls = null;
+                        destroyHls();
                         showOffline();
                     }
                 });
@@ -137,14 +147,56 @@ document.addEventListener("DOMContentLoaded", () => {
                         showPlayOverlay();
                     }
                 });
-                video.addEventListener("error", () => showOffline());
+                video.addEventListener("error", () => {
+                    destroyHls();
+                    showOffline();
+                });
             } else {
                 console.error("HLS no soportado");
                 showOffline();
             }
         }
 
+        // ── Polling: consultar estado cada 3 segundos ──
+        let lastKnownState = { onAir: enVivo, hlsUrl: urlHls };
+        function checkStreamStatus() {
+            fetch('/estado-canal/')
+                .then(r => r.json())
+                .then(data => {
+                    const newOnAir = data.en_vivo === true;
+                    const newHlsUrl = data.hls_url;
+                    if (newOnAir !== lastKnownState.onAir || newHlsUrl !== lastKnownState.hlsUrl) {
+                        console.log("Cambio de estado detectado:", { newOnAir, newHlsUrl });
+                        lastKnownState = { onAir: newOnAir, hlsUrl: newHlsUrl };
+                        enVivo = newOnAir;
+                        urlHls = newHlsUrl;
+                        // Actualizar barra de estado
+                        const statusBar = document.querySelector('.player-status-bar');
+                        const statusDot = document.querySelector('.status-dot');
+                        if (statusBar) {
+                            statusBar.classList.toggle('live', enVivo);
+                            statusBar.querySelector('span:last-child').textContent = enVivo ? 'EN VIVO' : 'FUERA DE LÍNEA';
+                        }
+                        if (statusDot) statusDot.classList.toggle('live', enVivo);
+
+                        if (enVivo && urlHls) {
+                            // Si hay stream activo, reiniciar reproductor
+                            userRequestedPlay = false; // resetear para que muestre play overlay
+                            iniciarHls();
+                        } else {
+                            destroyHls();
+                            showOffline();
+                        }
+                    }
+                })
+                .catch(e => console.warn("Polling error:", e));
+        }
+
+        // Iniciar reproductor por primera vez
         iniciarHls();
+
+        // Iniciar polling
+        setInterval(checkStreamStatus, 3000);
 
         // Manejar clic en botón play
         if (playOverlay && document.getElementById("playBtn")) {
@@ -162,7 +214,11 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        video.addEventListener("play", () => hideAllOverlays());
+        video.addEventListener("play", () => {
+            hideAllOverlays();
+            // Al comenzar a reproducir, ocultar poster si existe
+            video.removeAttribute('poster');
+        });
         video.addEventListener("pause", () => {
             if (enVivo && !video.ended && !video.seeking) {
                 showPlayOverlay();
@@ -174,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => {
             video.classList.toggle("video-horizontal", video.videoHeight <= video.videoWidth);
         });
 
-        window.addEventListener("beforeunload", () => { if (hls) { hls.destroy(); hls = null; } });
+        window.addEventListener("beforeunload", () => { if (hls) hls.destroy(); });
     }
 
     // ══════════════════════════════════════
@@ -268,7 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// ==================== HELPERS (mantener) ====================
+// ==================== HELPERS ====================
 function hexToRgba(hex, a) {
     try { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
     catch { return `rgba(0,0,0,${a})`; }
