@@ -16,9 +16,9 @@ urlpatterns = [
     path("editor/resetear/", views.editor_resetear, name="editor_resetear"),
     path("chat/enviar/", views.enviar_mensaje, name="enviar_mensaje"),
     path("chat/mensajes/", views.obtener_mensajes, name="obtener_mensajes"),
+    # NUEVA RUTA PARA ESTADO DEL CANAL
+    path("estado-canal/", views.estado_canal, name="estado_canal"),
 ]
 
-# En desarrollo (DEBUG=True), Django sirve los archivos de /media/ directamente.
-# En producción, Nginx se encarga de servir /media/ (ver configuración de Nginx).
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

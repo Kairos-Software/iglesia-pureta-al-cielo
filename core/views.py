@@ -512,3 +512,24 @@ def editor_resetear(request):
         return JsonResponse({"ok": True})
     except OSError as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
+    
+
+# ══════════════════════════════════════════════════════
+# ESTADO DEL CANAL (para polling de la página pública)
+# ══════════════════════════════════════════════════════
+
+
+def estado_canal(request):
+    """
+    Devuelve el estado actual del stream (en_vivo y url_hls)
+    para que la página pública pueda detectar cambios.
+    """
+    user = get_owner_user(request)
+    if not user:
+        return JsonResponse({"en_vivo": False, "hls_url": ""})
+
+    canal = CanalTransmision.objects.filter(usuario=user).first()
+    return JsonResponse({
+        "en_vivo": canal.en_vivo if canal else False,
+        "hls_url": canal.url_hls if canal else "",
+    })
