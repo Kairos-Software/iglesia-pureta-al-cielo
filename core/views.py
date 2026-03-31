@@ -521,15 +521,19 @@ def editor_resetear(request):
 
 def estado_canal(request):
     """
-    Devuelve el estado actual del stream (en_vivo y url_hls)
-    para que la página pública pueda detectar cambios.
+    Devuelve el estado del canal para la página pública.
+    Construye la URL HLS dinámicamente en lugar de leerla de la base de datos.
     """
-    user = get_owner_user(request)
+    user = get_owner_user(request)  # asumiendo que ya tienes esta función en el archivo
     if not user:
-        return JsonResponse({"en_vivo": False, "hls_url": ""})
+        return JsonResponse({"en_vivo": False, "hls_url": "", "modo_radio": False})
 
     canal = CanalTransmision.objects.filter(usuario=user).first()
+    # Construir URL HLS igual que en get_stream_context
+    hls_url = f"{settings.HLS_BASE_URL}/program/{user.username}.m3u8"
+    
     return JsonResponse({
         "en_vivo": canal.en_vivo if canal else False,
-        "hls_url": canal.url_hls if canal else "",
+        "hls_url": hls_url,
+        "modo_radio": canal.modo_radio if canal else False,
     })
